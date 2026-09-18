@@ -1,1 +1,40 @@
 @import "tailwindcss";
+
+:root {
+  --brand-blue: #0018a0;
+  --brand-white: #ffffff;
+  --surface: #f8f9fa;
+  --surface-soft: #f6f8ff;
+  --text: #191c1d;
+  --text-muted: #444656;
+  --border-soft: #c5c5d9;
+
+  --success: #10b981;
+  --booking-green: #16a34a;
+  --service-cyan: #0ea5e9;
+  --teal: #006d5b;
+  --indigo: #4f46e5;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --accent-coral: #f25a5a;
+}
+
+@theme {
+  --color-primary: var(--brand-blue);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-white: var(--brand-white);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+  --color-on-surface: var(--text);
+  --color-on-surface-variant: var(--text-muted);
+  --color-outline-variant: var(--border-soft);
+
+  --color-success: var(--success);
+  --color-booking-green: var(--booking-green);
+  --color-service-cyan: var(--service-cyan);
+  --color-primary-teal: var(--teal);
+  --color-primary-indigo: var(--indigo);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-accent-coral: var(--accent-coral);
+}
