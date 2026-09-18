@@ -1,12 +1,12 @@
 import { AxiosError } from "axios";
 
 import { api } from "./api";
-import { useAuthStore } from "../security/auth.store";
-import type RefreshTokenResponse from "../security/refresh-token.response";
 import {
   ERROR_CODES,
   type FailureResponse,
 } from "./failure.response.";
+import { clearAccessToken, getAccessToken, setAccessToken } from "../security/auth.store";
+import RefreshTokenResponse from "../security/refresh-token.response";
 
 let refreshPromise: Promise<string> | null = null;
 
@@ -16,11 +16,8 @@ function refreshAccessToken(): Promise<string> {
     refreshPromise = api
       .post<RefreshTokenResponse>("/auth/refresh-token")
       .then(({ data }) => {
-        const { setAccessToken, setIsAuthenticated } =
-          useAuthStore.getState();
 
         setAccessToken(data.accessToken);
-        setIsAuthenticated(true);
 
         return data.accessToken;
       })
@@ -35,7 +32,7 @@ function refreshAccessToken(): Promise<string> {
 export const setupInterceptors = (): void => {
   // Attach access token
   api.interceptors.request.use((config) => {
-    const token = useAuthStore.getState().accessToken;
+    const token = getAccessToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -58,7 +55,7 @@ export const setupInterceptors = (): void => {
         status === 401 &&
         code === ERROR_CODES.REFRESH_TOKEN_ERROR
       ) {
-        useAuthStore.getState().clearAuthState();
+        clearAccessToken();
         return Promise.reject(error);
       }
 
