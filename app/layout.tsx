@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-// import { Be_Vietnam_Pro } from "next/font/google";
+import { Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
 
 // Tải font về local
-// const beVietnamPro = Be_Vietnam_Pro({
-//   subsets: ["latin", "vietnamese"],
-//   weight: ["300", "400", "500", "600", "700", "800", "900"],
-// });
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
 
 export const metadata: Metadata = {
   title: "Incodetrade - Nền tảng thuê dịch vụ",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning className={beVietnamPro.className}>{children}</body>
     </html>
   );
 }
