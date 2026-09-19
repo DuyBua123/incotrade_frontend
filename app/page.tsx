@@ -23,12 +23,12 @@ export default function Home() {
           </div>
 
           <div className="flex justify-end">
-            <a
-              href="#"
+            <Link
+              href="/login"
               className="rounded-lg px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               Đăng nhập
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
