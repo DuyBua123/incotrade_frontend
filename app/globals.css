@@ -19,6 +19,21 @@
   --accent-coral: #f25a5a;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--text);
+  font-family: "Be Vietnam Pro", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
 @theme {
   --color-primary: var(--brand-blue);
   --color-brand-blue: var(--brand-blue);
