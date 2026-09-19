@@ -18,9 +18,9 @@ export default function LoginPage() {
       <section className="w-full max-w-[420px] rounded-lg border border-outline-variant/25 bg-white px-6 py-7 shadow-[0_18px_45px_rgba(8,20,70,0.10)] sm:px-8 sm:py-8">
         <div>
           <p className="text-sm font-bold text-primary">Incodetrade</p>
-          <h1 className="mt-3 text-2xl font-extrabold text-on-surface">Sign in</h1>
+          <h1 className="mt-3 text-2xl font-extrabold text-on-surface">Đăng nhập</h1>
           <p className="mt-2 text-sm leading-6 text-on-surface-variant">
-            Continue to your account to manage services and appointments.
+            Vào tài khoản của bạn để tiếp tục quản lý dịch vụ và lịch hẹn.
           </p>
         </div>
 
@@ -43,7 +43,6 @@ export default function LoginPage() {
               name="email"
               type="email"
               autoComplete="email"
-              required
               disabled={isSubmitting}
               aria-invalid={Boolean(fieldErrors.email)}
               aria-describedby={fieldErrors.email ? "email-error" : undefined}
@@ -61,21 +60,20 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="password" className="text-sm font-semibold text-on-surface">
-              Password
+              Mật khẩu
             </label>
             <input
               id="password"
               name="password"
               type="password"
               autoComplete="current-password"
-              required
               disabled={isSubmitting}
               aria-invalid={Boolean(fieldErrors.password)}
               aria-describedby={fieldErrors.password ? "password-error" : undefined}
               value={form.password}
               onChange={(event) => updateField("password", event.target.value)}
               className="mt-2 h-12 w-full rounded-lg border border-outline-variant/45 bg-white px-4 text-sm text-on-surface outline-none transition placeholder:text-on-surface-variant/55 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-surface-soft disabled:text-on-surface-variant/60"
-              placeholder="Enter your password"
+              placeholder="Nhập mật khẩu của bạn"
             />
             {fieldErrors.password ? (
               <p id="password-error" className="mt-2 text-sm font-medium text-danger">
@@ -89,7 +87,7 @@ export default function LoginPage() {
             disabled={isSubmitting}
             className="flex h-12 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:bg-primary/55"
           >
-            {isSubmitting ? "Signing in..." : "Sign in"}
+            {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
 
           <Link
@@ -105,7 +103,7 @@ export default function LoginPage() {
               isSubmitting ? "pointer-events-none opacity-60" : ""
             }`}
           >
-            Go Back Home
+            Quay về trang chủ
           </Link>
         </form>
       </section>

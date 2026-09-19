@@ -1,5 +1,5 @@
 import axios from "axios";
-import { FormEvent, useState } from "react";
+import { SubmitEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { api } from "@/lib/api/api";
@@ -45,7 +45,7 @@ export default function useLogin() {
 
   function handleLoginError(error: unknown) {
     if (!axios.isAxiosError<FailureResponse>(error) || !error.response) {
-      setFormError("Unable to sign in right now. Please try again.");
+      setFormError("Không thể đăng nhập lúc này. Vui lòng thử lại sau.");
       return;
     }
 
@@ -59,17 +59,16 @@ export default function useLogin() {
     }
 
     if (
-      failure.code === ERROR_CODES.INVALID_CREDENTIAL_ERROR &&
-      typeof failure.errors === "string"
+      failure.code === ERROR_CODES.INVALID_CREDENTIAL_ERROR
     ) {
-      setFormError(failure.errors);
+      setFormError(failure.errors as string);
       return;
     }
 
-    setFormError(failure.message || "Unable to sign in right now. Please try again.");
+    setFormError(failure.message || "Không thể đăng nhập lúc này. Vui lòng thử lại sau.");
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setFieldErrors({});
