@@ -59,7 +59,7 @@ export const setupInterceptors = (): void => {
         return Promise.reject(error);
       }
 
-      // Refresh when access token expired
+      // Reject when there is other error code (INPUT_VALIDATION, NOT_FOUND, FOBBIDEN, SERVER_ERROR, ...)
       if (
         !request || 
         status !== 401 ||
@@ -68,7 +68,7 @@ export const setupInterceptors = (): void => {
         return Promise.reject(error);
       }
 
-      // Refresh access token
+      // Refresh when access token expired
       const token = await refreshAccessToken();
 
       // Retry original request
