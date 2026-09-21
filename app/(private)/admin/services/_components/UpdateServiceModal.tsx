@@ -1,7 +1,7 @@
 "use client";
 
 import { type KeyboardEvent, type SubmitEvent } from "react";
-import { LoaderCircle, PlusCircle } from "lucide-react";
+import { LoaderCircle, Save } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import useCreateService from "@/feature/service/create-service/create-service.hook";
+import useUpdateService from "@/feature/service/update-service/update-service.hook";
 
-type CreateServiceModalProps = {
+type UpdateServiceModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onCreated: (message: string) => void;
+  onUpdated: (message: string) => void;
+  serviceId: string | null;
 };
 
 function FieldError({ message }: { message?: string }) {
@@ -33,20 +34,25 @@ function FieldError({ message }: { message?: string }) {
   return <p className="mt-1.5 text-xs font-bold text-danger">{message}</p>;
 }
 
-export default function CreateServiceModal({
+export default function UpdateServiceModal({
   isOpen,
   onClose,
-  onCreated,
-}: CreateServiceModalProps) {
+  onUpdated,
+  serviceId,
+}: UpdateServiceModalProps) {
   const {
+    detailError,
     fieldErrors,
     form,
     formError,
+    isLoadingDetail,
     isSubmitting,
-    submitCreateService,
     resetForm,
+    submitUpdateService,
     updateField,
-  } = useCreateService();
+  } = useUpdateService({ isOpen, serviceId });
+
+  const isFormDisabled = isLoadingDetail || isSubmitting || Boolean(detailError);
 
   function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.key === "Escape" && !isSubmitting) {
@@ -64,10 +70,10 @@ export default function CreateServiceModal({
   }
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    const successMessage = await submitCreateService(event);
+    const successMessage = await submitUpdateService(event);
 
     if (successMessage) {
-      onCreated(successMessage);
+      onUpdated(successMessage);
     }
   }
 
@@ -86,10 +92,10 @@ export default function CreateServiceModal({
       >
         <DialogHeader className="border-b border-outline-variant/15 px-5 py-4">
           <DialogDescription className="text-xs font-black uppercase tracking-[0.16em] text-primary">
-            Dịch vụ mới
+            Cập nhật dịch vụ
           </DialogDescription>
           <DialogTitle className="text-xl font-extrabold text-on-surface">
-            Tạo dịch vụ
+            Thông tin dịch vụ
           </DialogTitle>
         </DialogHeader>
 
@@ -97,6 +103,26 @@ export default function CreateServiceModal({
           onSubmit={handleSubmit}
           className="max-h-[calc(100vh-9rem)] overflow-y-auto px-5 py-5"
         >
+          {isLoadingDetail && (
+            <Alert className="mb-5 border-primary/15 bg-primary/5 text-primary">
+              <LoaderCircle className="animate-spin" aria-hidden="true" />
+              <AlertDescription className="font-bold text-primary">
+                Đang tải thông tin dịch vụ...
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {detailError && (
+            <Alert
+              variant="destructive"
+              className="mb-5 border-danger/15 bg-danger/5"
+            >
+              <AlertDescription className="font-bold text-danger">
+                {detailError}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {formError && (
             <Alert
               variant="destructive"
@@ -110,11 +136,11 @@ export default function CreateServiceModal({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="create-service-name">
+              <Label htmlFor="update-service-name">
                 Tên dịch vụ <span className="text-danger">*</span>
               </Label>
               <Input
-                id="create-service-name"
+                id="update-service-name"
                 value={form.serviceName}
                 onChange={(event) =>
                   updateField("serviceName", event.target.value)
@@ -122,15 +148,16 @@ export default function CreateServiceModal({
                 onKeyDown={handleKeyDown}
                 aria-invalid={Boolean(fieldErrors.serviceName)}
                 className="h-11 bg-slate-50 font-semibold focus-visible:bg-white"
+                disabled={isFormDisabled}
                 placeholder="Nhập tên dịch vụ"
               />
               <FieldError message={fieldErrors.serviceName} />
             </div>
 
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="create-service-description">Mô tả</Label>
+              <Label htmlFor="update-service-description">Mô tả</Label>
               <Textarea
-                id="create-service-description"
+                id="update-service-description"
                 value={form.description ?? ""}
                 onChange={(event) =>
                   updateField("description", event.target.value)
@@ -138,17 +165,18 @@ export default function CreateServiceModal({
                 onKeyDown={handleKeyDown}
                 aria-invalid={Boolean(fieldErrors.description)}
                 className="min-h-28 resize-y bg-slate-50 font-semibold leading-6 focus-visible:bg-white"
+                disabled={isFormDisabled}
                 placeholder="Nhập mô tả ngắn cho dịch vụ"
               />
               <FieldError message={fieldErrors.description} />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="create-service-duration">
+              <Label htmlFor="update-service-duration">
                 Thời lượng (phút) <span className="text-danger">*</span>
               </Label>
               <Input
-                id="create-service-duration"
+                id="update-service-duration"
                 value={form.durationMinutes}
                 onChange={(event) =>
                   updateField(
@@ -159,6 +187,7 @@ export default function CreateServiceModal({
                 onKeyDown={handleKeyDown}
                 aria-invalid={Boolean(fieldErrors.durationMinutes)}
                 className="h-11 bg-slate-50 font-semibold focus-visible:bg-white"
+                disabled={isFormDisabled}
                 inputMode="numeric"
                 pattern="[0-9]*"
                 placeholder="60"
@@ -168,11 +197,11 @@ export default function CreateServiceModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="create-service-price">
+              <Label htmlFor="update-service-price">
                 Giá (VND) <span className="text-danger">*</span>
               </Label>
               <Input
-                id="create-service-price"
+                id="update-service-price"
                 value={form.price}
                 onChange={(event) =>
                   updateField("price", event.target.value.replace(/\D/g, ""))
@@ -180,6 +209,7 @@ export default function CreateServiceModal({
                 onKeyDown={handleKeyDown}
                 aria-invalid={Boolean(fieldErrors.price)}
                 className="h-11 bg-slate-50 font-semibold focus-visible:bg-white"
+                disabled={isFormDisabled}
                 inputMode="numeric"
                 pattern="[0-9]*"
                 placeholder="150000"
@@ -195,13 +225,14 @@ export default function CreateServiceModal({
                 onValueChange={(value) => updateField("isLock", String(value))}
                 className="grid gap-2 sm:grid-cols-2"
                 aria-invalid={Boolean(fieldErrors.isLock)}
+                disabled={isFormDisabled}
               >
                 <Label
-                  htmlFor="create-service-unlocked"
-                  className="flex min-h-12 cursor-pointer rounded-lg border border-outline-variant/20 bg-slate-50 px-4 py-3 transition hover:border-primary/25 hover:bg-primary/5"
+                  htmlFor="update-service-unlocked"
+                  className="flex min-h-12 cursor-pointer rounded-lg border border-outline-variant/20 bg-slate-50 px-4 py-3 transition hover:border-primary/25 hover:bg-primary/5 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-70"
                 >
                   <RadioGroupItem
-                    id="create-service-unlocked"
+                    id="update-service-unlocked"
                     value="false"
                   />
                   <span className="font-bold text-on-surface">
@@ -209,10 +240,10 @@ export default function CreateServiceModal({
                   </span>
                 </Label>
                 <Label
-                  htmlFor="create-service-locked"
-                  className="flex min-h-12 cursor-pointer rounded-lg border border-outline-variant/20 bg-slate-50 px-4 py-3 transition hover:border-primary/25 hover:bg-primary/5"
+                  htmlFor="update-service-locked"
+                  className="flex min-h-12 cursor-pointer rounded-lg border border-outline-variant/20 bg-slate-50 px-4 py-3 transition hover:border-primary/25 hover:bg-primary/5 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-70"
                 >
-                  <RadioGroupItem id="create-service-locked" value="true" />
+                  <RadioGroupItem id="update-service-locked" value="true" />
                   <span className="font-bold text-on-surface">Đang khóa</span>
                 </Label>
               </RadioGroup>
@@ -230,13 +261,13 @@ export default function CreateServiceModal({
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="font-bold">
+            <Button type="submit" disabled={isFormDisabled} className="font-bold">
               {isSubmitting ? (
                 <LoaderCircle className="animate-spin" data-icon="inline-start" />
               ) : (
-                <PlusCircle data-icon="inline-start" />
+                <Save data-icon="inline-start" />
               )}
-              Tạo dịch vụ
+              Cập nhật
             </Button>
           </DialogFooter>
         </form>
