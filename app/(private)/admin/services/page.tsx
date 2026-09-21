@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Lock,
+  LoaderCircle,
   MoreHorizontal,
   Pencil,
   PlusCircle,
@@ -43,6 +44,8 @@ import {
 import useGetServices, {
   GET_SERVICES_DEFAULT_SIZE,
 } from "@/feature/service/get-services/get-services.hook";
+import type { Service } from "@/feature/service/get-services/get-services.type";
+import useSetServiceLocking from "@/feature/service/set-service-locking/set-service-locking.hook";
 
 import CreateServiceModal from "./_components/CreateServiceModal";
 import UpdateServiceModal from "./_components/UpdateServiceModal";
@@ -78,21 +81,31 @@ export default function AdminServicesPage() {
     refresh,
     goToPage,
   } = useGetServices();
+  const {
+    errorMessage: lockErrorMessage,
+    isSubmitting: isSettingServiceLock,
+    resetError: resetLockError,
+    setServiceLocking,
+    submittingServiceId,
+  } = useSetServiceLocking();
 
   function handleCreateServiceCreated(message: string) {
     setSuccessMessage(message);
+    resetLockError();
     refresh();
     setIsCreateModalOpen(false);
   }
 
   function handleOpenUpdateModal(serviceId: string | number) {
     setSuccessMessage("");
+    resetLockError();
     setSelectedServiceId(String(serviceId));
     setIsUpdateModalOpen(true);
   }
 
   function handleUpdateServiceUpdated(message: string) {
     setSuccessMessage(message);
+    resetLockError();
     refresh();
     setIsUpdateModalOpen(false);
     setSelectedServiceId(null);
@@ -101,6 +114,24 @@ export default function AdminServicesPage() {
   function handleCloseUpdateModal() {
     setIsUpdateModalOpen(false);
     setSelectedServiceId(null);
+  }
+
+  async function handleSetServiceLocking(service: Service) {
+    const nextIsLocked = !service.isLocked;
+
+    setSuccessMessage("");
+
+    const message = await setServiceLocking({
+      serviceId: String(service.id),
+      isLocked: nextIsLocked ? "true" : "false",
+    });
+
+    if (!message) {
+      return;
+    }
+
+    setSuccessMessage(message);
+    refresh();
   }
 
   return (
@@ -126,6 +157,7 @@ export default function AdminServicesPage() {
             size="lg"
             onClick={() => {
               setSuccessMessage("");
+              resetLockError();
               refresh();
             }}
             disabled={isLoading}
@@ -139,6 +171,7 @@ export default function AdminServicesPage() {
             size="lg"
             onClick={() => {
               setSuccessMessage("");
+              resetLockError();
               setIsCreateModalOpen(true);
             }}
             className="font-bold"
@@ -153,6 +186,14 @@ export default function AdminServicesPage() {
         <Alert className="border-success/20 bg-success/10 text-success">
           <AlertDescription className="font-bold text-success">
             {successMessage}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {lockErrorMessage && (
+        <Alert variant="destructive" className="border-danger/15 bg-danger/5">
+          <AlertDescription className="font-bold text-danger">
+            {lockErrorMessage}
           </AlertDescription>
         </Alert>
       )}
@@ -299,6 +340,32 @@ export default function AdminServicesPage() {
                           >
                             <Pencil aria-hidden="true" />
                             Cập nhật
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => void handleSetServiceLocking(service)}
+                            disabled={isSettingServiceLock}
+                            className={
+                              service.isLocked
+                                ? "font-bold text-success"
+                                : "font-bold text-on-surface"
+                            }
+                          >
+                            {submittingServiceId === String(service.id) ? (
+                              <LoaderCircle
+                                className="animate-spin"
+                                aria-hidden="true"
+                              />
+                            ) : service.isLocked ? (
+                              <Unlock aria-hidden="true" /> 
+                            ) : (
+                              <Lock aria-hidden="true" />
+                            )}
+                            {submittingServiceId === String(service.id)
+                              ? "Đang xử lý"
+                              : service.isLocked
+                                ? "Mở khóa"
+                                : "Khóa"
+                            }
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
