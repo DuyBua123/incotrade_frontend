@@ -1,4 +1,8 @@
-import { MeUserResponse } from "./me.response";
+import axios from "axios";
+import { api } from "../api/api";
+import { MeResponse, MeUserResponse } from "./me.response";
+import { FailureResponse } from "../api/failure.response.";
+import { SuccessResponse } from "../api/success.response.";
 
 
 let accessToken: string = "";
@@ -24,4 +28,21 @@ export function clearAccessToken() {
 }
 export function clearCurrentUser() {
     currentUser = null;
+}
+
+export function isAuthenticated() {
+    return !accessToken?.trim(); 
+}
+
+export async function getMeClient() {
+    try {
+        const response = await api.get<SuccessResponse<MeResponse>>("/auth/me");
+
+        console.log(response.data.data);
+        
+    } catch (error) {
+        if (axios.isAxiosError<FailureResponse<string>>(error)) {
+            console.log(error.response?.data);
+        }
+    }
 }
