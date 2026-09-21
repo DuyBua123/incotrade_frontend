@@ -5,8 +5,9 @@ import {
   ERROR_CODES,
   type FailureResponse,
 } from "./failure.response.";
-import { clearAccessToken, getAccessToken, setAccessToken } from "../security/auth.store";
+// import { clearAccessToken, getAccessToken, setAccessToken } from "../security/auth.store";
 import RefreshTokenResponse from "../security/refresh-token.response";
+import { getMeServer } from "../security/auth.server";
 
 let refreshPromise: Promise<string> | null = null;
 
@@ -16,9 +17,6 @@ function refreshAccessToken(): Promise<string> {
     refreshPromise = api
       .post<RefreshTokenResponse>("/auth/refresh-token")
       .then(({ data }) => {
-
-        setAccessToken(data.accessToken);
-
         return data.accessToken;
       })
       .finally(() => {
@@ -31,11 +29,12 @@ function refreshAccessToken(): Promise<string> {
 
 export const setupInterceptors = (): void => {
   // Attach access token
-  api.interceptors.request.use((config) => {
-    const token = getAccessToken();
+  api.interceptors.request.use(async (config) => {
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const me = await getMeServer();    
+
+    if (me?.accessToken) {
+      config.headers.Authorization = `Bearer ${me.accessToken}`;
     }
 
     return config;
@@ -55,7 +54,6 @@ export const setupInterceptors = (): void => {
         status === 401 &&
         code === ERROR_CODES.REFRESH_TOKEN_ERROR
       ) {
-        clearAccessToken();
         return Promise.reject(error);
       }
 
