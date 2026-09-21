@@ -77,6 +77,7 @@ type UseUpdateServiceOptions = {
   serviceId: string | null;
 };
 
+
 export default function useUpdateService({
   isOpen,
   serviceId,
@@ -94,7 +95,6 @@ export default function useUpdateService({
     }
 
     const activeServiceId = serviceId;
-    let isActive = true;
 
     async function loadServiceDetail() {
       setIsLoadingDetail(true);
@@ -112,15 +112,8 @@ export default function useUpdateService({
           }
         );
 
-        if (!isActive) {
-          return;
-        }
-
         setForm(buildFormFromService(data.data));
       } catch (error) {
-        if (!isActive) {
-          return;
-        }
 
         setForm((current) => ({
           ...current,
@@ -128,17 +121,13 @@ export default function useUpdateService({
         }));
         setDetailError(getFailureMessage(error, GET_SERVICE_ERROR_MESSAGE));
       } finally {
-        if (isActive) {
-          setIsLoadingDetail(false);
-        }
+        setIsLoadingDetail(false);
       }
     }
 
     void loadServiceDetail();
 
-    return () => {
-      isActive = false;
-    };
+
   }, [isOpen, serviceId]);
 
   function updateField(field: keyof UpdateServiceRequest, value: string) {
@@ -165,11 +154,7 @@ export default function useUpdateService({
 
     const failure = error.response.data;
 
-    if (
-      failure.code === ERROR_CODES.INPUT_VALIDATION_ERROR &&
-      typeof failure.errors === "object" &&
-      failure.errors !== null
-    ) {
+    if (failure.code === ERROR_CODES.INPUT_VALIDATION_ERROR) {
       setFieldErrors(normalizeFieldErrors(failure.errors as RawFieldErrors));
       setFormError(failure.message);
       return;

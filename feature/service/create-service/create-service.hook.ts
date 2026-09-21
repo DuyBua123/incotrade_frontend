@@ -24,6 +24,9 @@ const INITIAL_FORM: CreateServiceRequest = {
   isLock: "false",
 };
 
+const CREATE_SERVICE_ERROR_MESSAGE = 
+  "Không thể tạo dịch vụ lúc này. Vui lòng thử lại sau.";
+
 function normalizeFieldErrors(errors: RawFieldErrors): CreateServiceFieldErrors {
   return {
     serviceName: errors.serviceName ?? errors.ServiceName,
@@ -43,6 +46,7 @@ function buildRequest(form: CreateServiceRequest): CreateServiceRequest {
     isLock: form.isLock?.trim() ? form.isLock : null,
   };
 }
+
 
 export default function useCreateService() {
   const [form, setForm] = useState<CreateServiceRequest>(INITIAL_FORM);
@@ -67,7 +71,7 @@ export default function useCreateService() {
 
   function handleCreateError(error: unknown) {
     if (!axios.isAxiosError<FailureResponse>(error) || !error.response) {
-      setFormError("Không thể tạo dịch vụ lúc này. Vui lòng thử lại sau.");
+      setFormError(CREATE_SERVICE_ERROR_MESSAGE);
       return;
     }
 
@@ -80,7 +84,7 @@ export default function useCreateService() {
     }
 
     setFormError(
-      failure.message || "Không thể tạo dịch vụ lúc này. Vui lòng thử lại sau."
+      failure.message || CREATE_SERVICE_ERROR_MESSAGE
     );
   }
 
