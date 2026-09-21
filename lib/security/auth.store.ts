@@ -1,8 +1,5 @@
-import axios from "axios";
-import { api } from "../api/api";
-import { MeResponse, MeUserResponse } from "./me.response";
-import { FailureResponse } from "../api/failure.response.";
-import { SuccessResponse } from "../api/success.response.";
+
+import { MeUserResponse } from "./me.response";
 
 
 let accessToken: string = "";
@@ -12,8 +9,8 @@ let currentUser: MeUserResponse | null = null;
 export function getAccessToken(): string {
     return accessToken;
 }
-export function getCurrentUser(): MeUserResponse {
-    return currentUser!;
+export function getCurrentUser(): MeUserResponse | null {
+    return currentUser;
 }
 
 export function setAccessToken(newAccessToken: string) {
@@ -31,18 +28,19 @@ export function clearCurrentUser() {
 }
 
 export function isAuthenticated() {
-    return !accessToken?.trim(); 
+    return Boolean(accessToken.trim()); 
 }
 
-export async function getMeClient() {
-    try {
-        const response = await api.get<SuccessResponse<MeResponse>>("/auth/me");
+// export async function getMeClient() {
+//     try {
+//         const response = await api.get<SuccessResponse<MeResponse>>("/auth/me");
 
-        console.log(response.data.data);
-        
-    } catch (error) {
-        if (axios.isAxiosError<FailureResponse<string>>(error)) {
-            console.log(error.response?.data);
-        }
-    }
-}
+//         setAccessToken(response.data.data.accessToken);
+//         setCurrentUser(response.data.data.user);        
+                
+//     } catch (error) {
+//         if (axios.isAxiosError<FailureResponse<string>>(error)) {
+//             console.log(error.response?.data);
+//         }
+//     }
+// }

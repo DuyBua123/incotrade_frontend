@@ -7,13 +7,14 @@ import {
   ERROR_CODES,
   type FailureResponse,
 } from "@/lib/api/failure.response.";
-import { setAccessToken, setCurrentUser } from "@/lib/security/auth.store";
+import { getAccessToken, setAccessToken, setCurrentUser } from "@/lib/security/auth.store";
 
 import type {
   LoginFieldErrors,
   LoginRequest,
   LoginResponse,
 } from "./login.type";
+import { SuccessResponse } from "@/lib/api/success.response.";
 
 type RawFieldErrors = Partial<Record<string, string>>;
 
@@ -75,10 +76,10 @@ export default function useLogin() {
     setFormError("");
 
     try {
-      const { data } = await api.post<LoginResponse>("/auth/login", form);
+      const { data } = await api.post<SuccessResponse<LoginResponse>>("/auth/login", form);      
 
-      setAccessToken(data.accessToken);
-      setCurrentUser(data.user);
+      setAccessToken(data.data.accessToken);
+      setCurrentUser(data.data.user);      
       router.push("/");
     } catch (error) {
       handleLoginError(error);

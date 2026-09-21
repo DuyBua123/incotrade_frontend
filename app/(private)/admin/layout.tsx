@@ -18,7 +18,7 @@ export default async function AdminLayout({children}: LayoutProps<"/admin">) {
     redirect("/login");
   }
 
-  const fullName = currentUser.fullName || "Admin Incodetrade";
+  const fullName = currentUser.user.fullName || "Admin Incodetrade";
   
 
   return (
