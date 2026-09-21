@@ -1,6 +1,6 @@
 "use client";
 
-import { type MouseEvent, useState } from "react";
+import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,18 +13,39 @@ import {
   Unlock,
 } from "lucide-react";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import useGetServices, {
   GET_SERVICES_DEFAULT_SIZE,
 } from "@/feature/service/get-services/get-services.hook";
 
 import CreateServiceModal from "./_components/CreateServiceModal";
 import UpdateServiceModal from "./_components/UpdateServiceModal";
-
-type ActionMenuState = {
-  serviceId: string;
-  top: number;
-  left: number;
-};
 
 function formatDuration(minutes: number) {
   return `${minutes.toLocaleString("vi-VN")} phút`;
@@ -44,7 +65,6 @@ export default function AdminServicesPage() {
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
     null
   );
-  const [actionMenu, setActionMenu] = useState<ActionMenuState | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
   const {
     currentPage,
@@ -65,39 +85,9 @@ export default function AdminServicesPage() {
     setIsCreateModalOpen(false);
   }
 
-  function handleActionMenuToggle(
-    serviceId: string | number,
-    event: MouseEvent<HTMLButtonElement>
-  ) {
-    const normalizedServiceId = String(serviceId);
-
-    if (actionMenu?.serviceId === normalizedServiceId) {
-      setActionMenu(null);
-      return;
-    }
-
-    const rect = event.currentTarget.getBoundingClientRect();
-    const menuWidth = 176;
-    const left = Math.min(
-      Math.max(12, rect.right - menuWidth),
-      window.innerWidth - menuWidth - 12
-    );
-    const top =
-      rect.bottom + 8 > window.innerHeight - 64
-        ? Math.max(12, rect.top - 56)
-        : rect.bottom + 8;
-
-    setActionMenu({
-      serviceId: normalizedServiceId,
-      top,
-      left,
-    });
-  }
-
-  function handleOpenUpdateModal(serviceId: string) {
-    setActionMenu(null);
+  function handleOpenUpdateModal(serviceId: string | number) {
     setSuccessMessage("");
-    setSelectedServiceId(serviceId);
+    setSelectedServiceId(String(serviceId));
     setIsUpdateModalOpen(true);
   }
 
@@ -130,248 +120,240 @@ export default function AdminServicesPage() {
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="lg"
             onClick={() => {
-              setActionMenu(null);
               setSuccessMessage("");
               refresh();
             }}
             disabled={isLoading}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant/35 bg-white px-4 py-2.5 text-sm font-bold text-primary shadow-sm transition hover:border-primary/30 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50"
+            className="font-bold text-primary"
           >
-            <RefreshCcw size={17} strokeWidth={2.4} aria-hidden="true" />
+            <RefreshCcw data-icon="inline-start" />
             Tải lại
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="lg"
             onClick={() => {
-              setActionMenu(null);
               setSuccessMessage("");
               setIsCreateModalOpen(true);
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            className="font-bold"
           >
-            <PlusCircle size={17} strokeWidth={2.4} aria-hidden="true" />
+            <PlusCircle data-icon="inline-start" />
             Tạo dịch vụ
-          </button>
+          </Button>
         </div>
       </div>
 
       {successMessage && (
-        <div className="rounded-2xl border border-success/20 bg-success/10 px-5 py-4 text-sm font-bold text-success">
-          {successMessage}
-        </div>
+        <Alert className="border-success/20 bg-success/10 text-success">
+          <AlertDescription className="font-bold text-success">
+            {successMessage}
+          </AlertDescription>
+        </Alert>
       )}
 
-      <section className="overflow-hidden rounded-2xl border border-outline-variant/20 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-outline-variant/15 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <Card className="gap-0 py-0">
+        <CardHeader className="border-b border-outline-variant/15 py-4">
           <div>
-            <h3 className="text-base font-extrabold text-on-surface">
+            <CardTitle className="font-extrabold text-on-surface">
               Dịch vụ
-            </h3>
-            <p className="mt-1 text-xs font-semibold text-on-surface-variant">
+            </CardTitle>
+            <CardDescription className="mt-1 font-semibold text-on-surface-variant">
               Tổng cộng {totalItems.toLocaleString("vi-VN")} dịch vụ
-            </p>
+            </CardDescription>
           </div>
 
-          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-primary">
-            Trang {currentPage.toLocaleString("vi-VN")} /{" "}
-            {totalPages.toLocaleString("vi-VN")}
-          </span>
-        </div>
+          <CardAction>
+            <Badge
+              variant="outline"
+              className="h-auto border-primary/15 bg-primary/5 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-primary"
+            >
+              Trang {currentPage.toLocaleString("vi-VN")} /{" "}
+              {totalPages.toLocaleString("vi-VN")}
+            </Badge>
+          </CardAction>
+        </CardHeader>
 
         {errorMessage && (
-          <div className="border-b border-danger/15 bg-danger/5 px-5 py-4">
-            <p className="text-sm font-bold text-danger">{errorMessage}</p>
+          <div className="border-b border-danger/15 px-4 py-4">
+            <Alert variant="destructive" className="border-danger/15 bg-danger/5">
+              <AlertDescription className="font-bold text-danger">
+                {errorMessage}
+              </AlertDescription>
+            </Alert>
           </div>
         )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1000px] border-separate border-spacing-0 bg-white text-left">
-            <thead>
-              <tr>
-                <th className="border-b border-outline-variant/15 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant">
+        <CardContent className="px-0">
+          <Table className="min-w-[1000px]">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
                   Mã dịch vụ
-                </th>
-                <th className="border-b border-outline-variant/15 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant">
+                </TableHead>
+                <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
                   Tên dịch vụ
-                </th>
-                <th className="border-b border-outline-variant/15 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant">
+                </TableHead>
+                <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
                   Thời lượng
-                </th>
-                <th className="border-b border-outline-variant/15 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant">
+                </TableHead>
+                <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
                   Giá
-                </th>
-                <th className="border-b border-outline-variant/15 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant">
+                </TableHead>
+                <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
                   Trạng thái
-                </th>
-                <th className="border-b border-outline-variant/15 px-5 py-4 text-right text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant">
+                </TableHead>
+                <TableHead className="px-5 py-4 text-right text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
                   Thao tác
-                </th>
-              </tr>
-            </thead>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
 
-            <tbody>
+            <TableBody>
               {isLoading &&
                 Array.from({ length: GET_SERVICES_DEFAULT_SIZE }).map(
                   (_, index) => (
-                    <tr key={`service-loading-${index}`}>
+                    <TableRow key={`service-loading-${index}`}>
                       {Array.from({ length: 6 }).map((__, cellIndex) => (
-                        <td
+                        <TableCell
                           key={`service-loading-${index}-${cellIndex}`}
-                          className="border-b border-outline-variant/10 px-5 py-4"
+                          className="px-5 py-4"
                         >
-                          <div className="h-5 w-full max-w-[180px] animate-pulse rounded bg-slate-100" />
-                        </td>
+                          <Skeleton className="h-5 w-full max-w-[180px]" />
+                        </TableCell>
                       ))}
-                    </tr>
+                    </TableRow>
                   )
                 )}
 
               {!isLoading &&
                 services.map((service) => (
-                  <tr key={service.id} className="transition hover:bg-slate-50">
-                    <td className="border-b border-outline-variant/10 px-5 py-4">
-                      <span className="inline-flex rounded-full bg-primary/5 px-3 py-1 text-xs font-black text-primary">
+                  <TableRow key={service.id}>
+                    <TableCell className="px-5 py-4">
+                      <Badge
+                        variant="outline"
+                        className="border-primary/15 bg-primary/5 font-black text-primary"
+                      >
                         {service.id}
-                      </span>
-                    </td>
-                    <td className="border-b border-outline-variant/10 px-5 py-4">
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-5 py-4">
                       <p className="font-bold text-on-surface">
                         {service.serviceName}
                       </p>
-                    </td>
-                    <td className="border-b border-outline-variant/10 px-5 py-4">
-                      <span className="text-sm font-semibold text-on-surface-variant">
+                    </TableCell>
+                    <TableCell className="px-5 py-4">
+                      <span className="font-semibold text-on-surface-variant">
                         {formatDuration(service.durationMinutes)}
                       </span>
-                    </td>
-                    <td className="border-b border-outline-variant/10 px-5 py-4">
-                      <span className="text-sm font-extrabold text-on-surface">
+                    </TableCell>
+                    <TableCell className="px-5 py-4">
+                      <span className="font-extrabold text-on-surface">
                         {formatCurrency(service.price)}
                       </span>
-                    </td>
-                    <td className="border-b border-outline-variant/10 px-5 py-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase ${
+                    </TableCell>
+                    <TableCell className="px-5 py-4">
+                      <Badge
+                        variant="outline"
+                        className={
                           service.isLocked
-                            ? "border-slate-200 bg-slate-50 text-on-surface-variant"
-                            : "border-success/20 bg-success/10 text-success"
-                        }`}
+                            ? "border-slate-200 bg-slate-50 font-black uppercase text-on-surface-variant"
+                            : "border-success/20 bg-success/10 font-black uppercase text-success"
+                        }
                       >
                         {service.isLocked ? (
-                          <Lock size={12} strokeWidth={2.6} aria-hidden="true" />
+                          <Lock aria-hidden="true" />
                         ) : (
-                          <Unlock
-                            size={12}
-                            strokeWidth={2.6}
-                            aria-hidden="true"
-                          />
+                          <Unlock aria-hidden="true" />
                         )}
                         {service.isLocked ? "Đang khóa" : "Đang hoạt động"}
-                      </span>
-                    </td>
-                    <td className="border-b border-outline-variant/10 px-5 py-4 text-right">
-                      <button
-                        type="button"
-                        aria-expanded={
-                          actionMenu?.serviceId === String(service.id)
-                        }
-                        aria-haspopup="menu"
-                        aria-label={`Mở thao tác dịch vụ ${service.serviceName}`}
-                        onClick={(event) =>
-                          handleActionMenuToggle(service.id, event)
-                        }
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-outline-variant/25 bg-white text-on-surface-variant transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-                      >
-                        <MoreHorizontal
-                          size={18}
-                          strokeWidth={2.5}
-                          aria-hidden="true"
-                        />
-                      </button>
-                    </td>
-                  </tr>
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-lg"
+                              aria-label={`Mở thao tác dịch vụ ${service.serviceName}`}
+                            />
+                          }
+                        >
+                          <MoreHorizontal aria-hidden="true" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-44"
+                          sideOffset={8}
+                        >
+                          <DropdownMenuItem
+                            onClick={() => handleOpenUpdateModal(service.id)}
+                            className="font-bold"
+                          >
+                            <Pencil aria-hidden="true" />
+                            Cập nhật
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
                 ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
 
-        {!isLoading && services.length === 0 && !errorMessage && (
-          <div className="flex flex-col items-center justify-center px-5 py-14 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-on-surface-variant">
-              <SearchX size={24} strokeWidth={2.4} aria-hidden="true" />
+          {!isLoading && services.length === 0 && !errorMessage && (
+            <div className="flex flex-col items-center justify-center px-5 py-14 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <SearchX size={24} strokeWidth={2.4} aria-hidden="true" />
+              </div>
+              <h3 className="mt-4 text-base font-extrabold text-on-surface">
+                Chưa có dịch vụ
+              </h3>
+              <p className="mt-2 max-w-md text-sm leading-6 text-on-surface-variant">
+                Hệ thống chưa trả về dịch vụ nào cho trang hiện tại.
+              </p>
             </div>
-            <h3 className="mt-4 text-base font-extrabold text-on-surface">
-              Chưa có dịch vụ
-            </h3>
-            <p className="mt-2 max-w-md text-sm leading-6 text-on-surface-variant">
-              Hệ thống chưa trả về dịch vụ nào cho trang hiện tại.
-            </p>
-          </div>
-        )}
+          )}
+        </CardContent>
 
-        {/* Pagination */}
-        <div className="flex flex-col gap-3 border-t border-outline-variant/15 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <CardFooter className="flex flex-col gap-3 border-t border-outline-variant/15 bg-muted/40 px-5 py-4 sm:flex-row sm:justify-between">
           <p className="text-sm font-semibold text-on-surface-variant">
             Trang {currentPage.toLocaleString("vi-VN")} trong{" "}
             {totalPages.toLocaleString("vi-VN")}
           </p>
 
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => void goToPage(currentPage - 1)}
               disabled={isLoading || !hasPrevious}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-outline-variant/30 bg-white px-3 py-2 text-sm font-bold text-on-surface-variant transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="font-bold"
             >
-              <ChevronLeft size={17} strokeWidth={2.4} aria-hidden="true" />
+              <ChevronLeft data-icon="inline-start" />
               Trước
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="outline"
               onClick={() => void goToPage(currentPage + 1)}
               disabled={isLoading || !hasNext}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-outline-variant/30 bg-white px-3 py-2 text-sm font-bold text-on-surface-variant transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="font-bold"
             >
               Sau
-              <ChevronRight size={17} strokeWidth={2.4} aria-hidden="true" />
-            </button>
+              <ChevronRight data-icon="inline-end" />
+            </Button>
           </div>
-        </div>
-      </section>
+        </CardFooter>
+      </Card>
 
-      {actionMenu && (
-        <>
-          <button
-            type="button"
-            aria-label="Đóng menu thao tác"
-            className="fixed inset-0 z-20 cursor-default bg-transparent"
-            onClick={() => setActionMenu(null)}
-          />
-          <div
-            role="menu"
-            className="fixed z-30 w-44 overflow-hidden rounded-xl border border-outline-variant/20 bg-white py-1.5 shadow-lg"
-            style={{
-              left: actionMenu.left,
-              top: actionMenu.top,
-            }}
-          >
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => handleOpenUpdateModal(actionMenu.serviceId)}
-              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-bold text-on-surface transition hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-            >
-              <Pencil size={16} strokeWidth={2.4} aria-hidden="true" />
-              Cập nhật
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Modals */}
       <CreateServiceModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
