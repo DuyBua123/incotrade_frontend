@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { type MouseEvent, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
   Lock,
+  MoreHorizontal,
+  Pencil,
   PlusCircle,
   RefreshCcw,
   SearchX,
@@ -16,6 +18,13 @@ import useGetServices, {
 } from "@/feature/service/get-services/get-services.hook";
 
 import CreateServiceModal from "./_components/CreateServiceModal";
+import UpdateServiceModal from "./_components/UpdateServiceModal";
+
+type ActionMenuState = {
+  serviceId: string;
+  top: number;
+  left: number;
+};
 
 function formatDuration(minutes: number) {
   return `${minutes.toLocaleString("vi-VN")} phút`;
@@ -31,7 +40,12 @@ function formatCurrency(value: number) {
 
 export default function AdminServicesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [createSuccessMessage, setCreateSuccessMessage] = useState("");
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
+    null
+  );
+  const [actionMenu, setActionMenu] = useState<ActionMenuState | null>(null);
+  const [successMessage, setSuccessMessage] = useState("");
   const {
     currentPage,
     errorMessage,
@@ -46,9 +60,57 @@ export default function AdminServicesPage() {
   } = useGetServices();
 
   function handleCreateServiceCreated(message: string) {
-    setCreateSuccessMessage(message);
+    setSuccessMessage(message);
     refresh();
     setIsCreateModalOpen(false);
+  }
+
+  function handleActionMenuToggle(
+    serviceId: string | number,
+    event: MouseEvent<HTMLButtonElement>
+  ) {
+    const normalizedServiceId = String(serviceId);
+
+    if (actionMenu?.serviceId === normalizedServiceId) {
+      setActionMenu(null);
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const menuWidth = 176;
+    const left = Math.min(
+      Math.max(12, rect.right - menuWidth),
+      window.innerWidth - menuWidth - 12
+    );
+    const top =
+      rect.bottom + 8 > window.innerHeight - 64
+        ? Math.max(12, rect.top - 56)
+        : rect.bottom + 8;
+
+    setActionMenu({
+      serviceId: normalizedServiceId,
+      top,
+      left,
+    });
+  }
+
+  function handleOpenUpdateModal(serviceId: string) {
+    setActionMenu(null);
+    setSuccessMessage("");
+    setSelectedServiceId(serviceId);
+    setIsUpdateModalOpen(true);
+  }
+
+  function handleUpdateServiceUpdated(message: string) {
+    setSuccessMessage(message);
+    refresh();
+    setIsUpdateModalOpen(false);
+    setSelectedServiceId(null);
+  }
+
+  function handleCloseUpdateModal() {
+    setIsUpdateModalOpen(false);
+    setSelectedServiceId(null);
   }
 
   return (
@@ -71,7 +133,8 @@ export default function AdminServicesPage() {
           <button
             type="button"
             onClick={() => {
-              setCreateSuccessMessage("");
+              setActionMenu(null);
+              setSuccessMessage("");
               refresh();
             }}
             disabled={isLoading}
@@ -83,7 +146,8 @@ export default function AdminServicesPage() {
           <button
             type="button"
             onClick={() => {
-              setCreateSuccessMessage("");
+              setActionMenu(null);
+              setSuccessMessage("");
               setIsCreateModalOpen(true);
             }}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
@@ -94,9 +158,9 @@ export default function AdminServicesPage() {
         </div>
       </div>
 
-      {createSuccessMessage && (
+      {successMessage && (
         <div className="rounded-2xl border border-success/20 bg-success/10 px-5 py-4 text-sm font-bold text-success">
-          {createSuccessMessage}
+          {successMessage}
         </div>
       )}
 
@@ -124,7 +188,7 @@ export default function AdminServicesPage() {
         )}
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[880px] border-separate border-spacing-0 bg-white text-left">
+          <table className="w-full min-w-[1000px] border-separate border-spacing-0 bg-white text-left">
             <thead>
               <tr>
                 <th className="border-b border-outline-variant/15 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant">
@@ -142,6 +206,9 @@ export default function AdminServicesPage() {
                 <th className="border-b border-outline-variant/15 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant">
                   Trạng thái
                 </th>
+                <th className="border-b border-outline-variant/15 px-5 py-4 text-right text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant">
+                  Thao tác
+                </th>
               </tr>
             </thead>
 
@@ -150,7 +217,7 @@ export default function AdminServicesPage() {
                 Array.from({ length: GET_SERVICES_DEFAULT_SIZE }).map(
                   (_, index) => (
                     <tr key={`service-loading-${index}`}>
-                      {Array.from({ length: 5 }).map((__, cellIndex) => (
+                      {Array.from({ length: 6 }).map((__, cellIndex) => (
                         <td
                           key={`service-loading-${index}-${cellIndex}`}
                           className="border-b border-outline-variant/10 px-5 py-4"
@@ -205,6 +272,26 @@ export default function AdminServicesPage() {
                         {service.isLocked ? "Đang khóa" : "Đang hoạt động"}
                       </span>
                     </td>
+                    <td className="border-b border-outline-variant/10 px-5 py-4 text-right">
+                      <button
+                        type="button"
+                        aria-expanded={
+                          actionMenu?.serviceId === String(service.id)
+                        }
+                        aria-haspopup="menu"
+                        aria-label={`Mở thao tác dịch vụ ${service.serviceName}`}
+                        onClick={(event) =>
+                          handleActionMenuToggle(service.id, event)
+                        }
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-outline-variant/25 bg-white text-on-surface-variant transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                      >
+                        <MoreHorizontal
+                          size={18}
+                          strokeWidth={2.5}
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </td>
                   </tr>
                 ))}
             </tbody>
@@ -255,11 +342,46 @@ export default function AdminServicesPage() {
         </div>
       </section>
 
+      {actionMenu && (
+        <>
+          <button
+            type="button"
+            aria-label="Đóng menu thao tác"
+            className="fixed inset-0 z-20 cursor-default bg-transparent"
+            onClick={() => setActionMenu(null)}
+          />
+          <div
+            role="menu"
+            className="fixed z-30 w-44 overflow-hidden rounded-xl border border-outline-variant/20 bg-white py-1.5 shadow-lg"
+            style={{
+              left: actionMenu.left,
+              top: actionMenu.top,
+            }}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => handleOpenUpdateModal(actionMenu.serviceId)}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-bold text-on-surface transition hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            >
+              <Pencil size={16} strokeWidth={2.4} aria-hidden="true" />
+              Cập nhật
+            </button>
+          </div>
+        </>
+      )}
+
       {/* Modals */}
       <CreateServiceModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCreated={handleCreateServiceCreated}
+      />
+      <UpdateServiceModal
+        isOpen={isUpdateModalOpen}
+        onClose={handleCloseUpdateModal}
+        onUpdated={handleUpdateServiceUpdated}
+        serviceId={selectedServiceId}
       />
     </div>
   );
