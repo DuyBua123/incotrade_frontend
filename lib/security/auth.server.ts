@@ -9,14 +9,14 @@ export async function getMeServer(): Promise<MeResponse | null> {
     try {
         const cookieStore = await cookies();
         const refreshToken = cookieStore.get("refreshToken")?.value;
-
-        if (!refreshToken) return null;        
+        
+        if (!refreshToken) return null;  
 
         const response = await api.get<SuccessResponse<MeResponse>>("/auth/me", {
             headers: {
                 Cookie: `refreshToken=${refreshToken}`,
             },
-        });        
+        });                
 
         return response.data.data;
     } catch {

@@ -2,22 +2,25 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 
 import { api } from "@/lib/api/api";
+import type {
+  PageableResponse,
+  SuccessResponse,
+} from "@/lib/api/success.response.";
 
 import type { Service } from "./get-services.type";
-import { PageableResponse, SuccessResponse } from "@/lib/api/success.response.";
 
 export const GET_SERVICES_DEFAULT_PAGE = 1;
 export const GET_SERVICES_DEFAULT_SIZE = 7;
 
+const GET_SERVICES_ERROR_MESSAGE =
+  "Không thể tải danh sách dịch vụ. Vui lòng thử lại.";
+
 function getErrorMessage(error: unknown) {
   if (axios.isAxiosError(error)) {
-    return (
-      error.response?.data?.message ||
-      "Không thể tải danh sách dịch vụ. Vui lòng thử lại."
-    );
+    return error.response?.data?.message || GET_SERVICES_ERROR_MESSAGE;
   }
 
-  return "Không thể tải danh sách dịch vụ. Vui lòng thử lại.";
+  return GET_SERVICES_ERROR_MESSAGE;
 }
 
 async function getServices(page: number) {
@@ -44,12 +47,9 @@ export default function useGetServices() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
-
   useEffect(() => {
-
     async function loadInitialServices() {
       try {
-
         const response = await getServices(GET_SERVICES_DEFAULT_PAGE);
 
         setServices(response.data.items);
@@ -59,9 +59,7 @@ export default function useGetServices() {
         setHasNext(response.data.pagination.hasNext);
         setHasPrevious(response.data.pagination.hasPrevious);
         setErrorMessage("");
-        console.log(response.data.items);
-        
-      } catch (error) {        
+      } catch (error) {
         setServices([]);
         setErrorMessage(getErrorMessage(error));
       } finally {
@@ -69,8 +67,7 @@ export default function useGetServices() {
       }
     }
 
-    loadInitialServices();
-
+    void loadInitialServices();
   }, []);
 
   async function goToPage(page: number) {

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 
 export default async function AdminLayout({children}: LayoutProps<"/admin">) {
-  const currentUser = await getMeServer();
+  const currentUser = await getMeServer();  
 
   // Authentication guard
   if (!currentUser) {
