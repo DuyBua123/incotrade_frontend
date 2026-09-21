@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -25,14 +26,6 @@ type UpdateServiceModalProps = {
   onUpdated: (message: string) => void;
   serviceId: string | null;
 };
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) {
-    return null;
-  }
-
-  return <p className="mt-1.5 text-xs font-bold text-danger">{message}</p>;
-}
 
 export default function UpdateServiceModal({
   isOpen,

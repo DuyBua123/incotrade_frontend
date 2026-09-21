@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Incodetrade - Đăng nhập"
+  title: "Incodetrade - Đăng nhập",
 };
 
 export default async function LoginLayout({ children }: LayoutProps<"/login">) {
@@ -12,6 +12,6 @@ export default async function LoginLayout({ children }: LayoutProps<"/login">) {
   if (currentUser) {
     redirect("/admin");
   }
-  
+
   return children;
 }
