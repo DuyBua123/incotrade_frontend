@@ -1,23 +1,33 @@
-import { AxiosError } from "axios";
+"use client";
+
+import { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 import { api } from "./api";
 import {
   ERROR_CODES,
   type FailureResponse,
 } from "./failure.response.";
-// import { clearAccessToken, getAccessToken, setAccessToken } from "../security/auth.store";
 import RefreshTokenResponse from "../security/refresh-token.response";
-import { getMeServer } from "../security/auth.server";
+import {
+  clearAccessToken,
+  getAccessToken,
+  setAccessToken
+} from "../security/auth.store";
+import { SuccessResponse } from "./success.response.";
+
+type RetriableRequestConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+};
 
 let refreshPromise: Promise<string> | null = null;
+let isClientInterceptorSetup = false;
 
-// Refresh access token
 function refreshAccessToken(): Promise<string> {
   if (!refreshPromise) {
     refreshPromise = api
-      .post<RefreshTokenResponse>("/auth/refresh-token")
+      .post<SuccessResponse<RefreshTokenResponse>>("/auth/refresh-token")
       .then(({ data }) => {
-        return data.accessToken;
+        return data.data.accessToken;
       })
       .finally(() => {
         refreshPromise = null;
@@ -27,49 +37,57 @@ function refreshAccessToken(): Promise<string> {
   return refreshPromise;
 }
 
-export const setupInterceptors = (): void => {
-  // Attach access token
-  api.interceptors.request.use(async (config) => {
+export const setupClientInterceptors = (): void => {
+  if (isClientInterceptorSetup) {
+    return;
+  }
+  
+  isClientInterceptorSetup = true;
 
-    const me = await getMeServer();    
-
-    if (me?.accessToken) {
-      config.headers.Authorization = `Bearer ${me.accessToken}`;
+  api.interceptors.request.use((config) => {
+    const token = getAccessToken();    
+        
+    if (token) {
+      console.log(token);
+      
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
   });
 
-  // Handle authentication errors
   api.interceptors.response.use(
     (response) => response,
 
     async (error: AxiosError<FailureResponse<string>>) => {
-      const request = error.config;
+      const request = error.config as RetriableRequestConfig | undefined;
       const status = error.response?.status;
       const code = error.response?.data?.code;
 
-      // Invalid/Expired refresh token => logout
       if (
         status === 401 &&
         code === ERROR_CODES.REFRESH_TOKEN_ERROR
       ) {
+        clearAccessToken();
         return Promise.reject(error);
       }
 
-      // Reject when there is other error code (INPUT_VALIDATION, NOT_FOUND, FOBBIDEN, SERVER_ERROR, ...)
       if (
-        !request || 
+        !request ||
+        request._retry ||
         status !== 401 ||
         code !== ERROR_CODES.UNAUTHENTICATED_ERROR
       ) {
+        
         return Promise.reject(error);
       }
 
-      // Refresh when access token expired
-      const token = await refreshAccessToken();
+      request._retry = true;
 
-      // Retry original request
+      const token = await refreshAccessToken();
+      
+      setAccessToken(token);
+
       request.headers.Authorization = `Bearer ${token}`;
 
       return api(request);

@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 
 import { api } from "@/lib/api/api";
 
-import type { GetServicesResponse, Service } from "./get-services.type";
-import { setupInterceptors } from "@/lib/api/interceptor";
+import type { Service } from "./get-services.type";
+import { PageableResponse, SuccessResponse } from "@/lib/api/success.response.";
 
 export const GET_SERVICES_DEFAULT_PAGE = 1;
 export const GET_SERVICES_DEFAULT_SIZE = 7;
@@ -21,7 +21,7 @@ function getErrorMessage(error: unknown) {
 }
 
 async function getServices(page: number) {
-  const response = await api.get<GetServicesResponse>(
+  const response = await api.get<SuccessResponse<PageableResponse<Service[]>>>(
     "/services/get-services",
     {
       params: {
@@ -45,17 +45,6 @@ export default function useGetServices() {
   const [errorMessage, setErrorMessage] = useState("");
 
 
-  function applyServicesPayload(payload: GetServicesResponse) {
-    const pagination = payload.pagination;
-
-    setServices(payload.items);
-    setCurrentPage(pagination.currentPage);
-    setTotalItems(pagination.totalItems);
-    setTotalPages(pagination.totalPages);
-    setHasNext(pagination.hasNext);
-    setHasPrevious(pagination.hasPrevious);
-  }
-
   useEffect(() => {
 
     async function loadInitialServices() {
@@ -63,12 +52,20 @@ export default function useGetServices() {
 
         const response = await getServices(GET_SERVICES_DEFAULT_PAGE);
 
-        applyServicesPayload(response);
+        setServices(response.data.items);
+        setCurrentPage(response.data.pagination.currentPage);
+        setTotalItems(response.data.pagination.totalItems);
+        setTotalPages(response.data.pagination.totalPages);
+        setHasNext(response.data.pagination.hasNext);
+        setHasPrevious(response.data.pagination.hasPrevious);
         setErrorMessage("");
-      } catch (error) {
-
+        console.log(response.data.items);
+        
+      } catch (error) {        
         setServices([]);
         setErrorMessage(getErrorMessage(error));
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -81,9 +78,14 @@ export default function useGetServices() {
     setErrorMessage("");
 
     try {
-      const payload = await getServices(page);
+      const response = await getServices(page);
 
-      applyServicesPayload(payload);
+      setServices(response.data.items);
+      setCurrentPage(response.data.pagination.currentPage);
+      setTotalItems(response.data.pagination.totalItems);
+      setTotalPages(response.data.pagination.totalPages);
+      setHasNext(response.data.pagination.hasNext);
+      setHasPrevious(response.data.pagination.hasPrevious);
     } catch (error) {
       setServices([]);
       setErrorMessage(getErrorMessage(error));

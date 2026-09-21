@@ -68,55 +68,6 @@ export default function AdminServicesPage() {
         </button>
       </div>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-outline-variant/20 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Sparkles size={22} strokeWidth={2.4} aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-on-surface-variant">
-                Tổng dịch vụ
-              </p>
-              <p className="mt-1 text-3xl font-extrabold leading-tight text-primary">
-                {totalItems.toLocaleString("vi-VN")}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-outline-variant/20 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-service-cyan/10 text-service-cyan">
-              <Clock size={22} strokeWidth={2.4} aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-on-surface-variant">
-                Kích thước trang
-              </p>
-              <p className="mt-1 text-3xl font-extrabold leading-tight text-on-surface">
-                {GET_SERVICES_DEFAULT_SIZE}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-outline-variant/20 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-teal/10 text-primary-teal">
-              <Unlock size={22} strokeWidth={2.4} aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-on-surface-variant">
-                Trang hiện tại
-              </p>
-              <p className="mt-1 text-3xl font-extrabold leading-tight text-on-surface">
-                {currentPage.toLocaleString("vi-VN")}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section className="overflow-hidden rounded-2xl border border-outline-variant/20 bg-white shadow-sm">
         <div className="flex flex-col gap-3 border-b border-outline-variant/15 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">

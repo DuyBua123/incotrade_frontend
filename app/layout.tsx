@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro } from "next/font/google";
+import ClientApiInterceptors from "./_components/ClientApiInterceptors";
 import "./globals.css";
 
 // Tải font về local
@@ -16,7 +17,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className={beVietnamPro.className}>{children}</body>
+      <body suppressHydrationWarning className={beVietnamPro.className}>
+        <ClientApiInterceptors />
+        {children}
+      </body>
     </html>
   );
 }

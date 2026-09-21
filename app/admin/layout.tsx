@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import AdminNavigation from "./_components/AdminNavigation";
 import { getMeServer } from "@/lib/security/auth.server";
 import { Metadata } from "next";
-import { setupInterceptors } from "@/lib/api/interceptor";
 
 export const metadata: Metadata = {
   title: "Incodetrade - Quản trị viên"
@@ -12,8 +11,6 @@ export const metadata: Metadata = {
 
 
 export default async function AdminLayout({children}: LayoutProps<"/admin">) {
-  // setupInterceptors();
-
   const currentUser = await getMeServer();
 
   // Authentication guard

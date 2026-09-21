@@ -1,4 +1,3 @@
-import type { PageableResponse } from "@/lib/api/success.response.";
 
 export type Service = {
   id: number | string;
@@ -13,4 +12,3 @@ export type GetServicesRequest = {
   size: number;
 };
 
-export type GetServicesResponse = PageableResponse<Service[]>;
