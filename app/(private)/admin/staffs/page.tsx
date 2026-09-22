@@ -1,7 +1,9 @@
 "use client";
 
 import { SubmitEvent, useState } from "react";
+import Link from "next/link";
 import {
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Lock,
@@ -360,6 +362,17 @@ export default function AdminStaffsPage() {
                           className="w-44"
                           sideOffset={8}
                         >
+                          <DropdownMenuItem
+                            render={
+                              <Link
+                                href={`/admin/staffs/${staff.id}/schedules`}
+                              />
+                            }
+                            className="font-bold text-primary"
+                          >
+                            <CalendarDays aria-hidden="true" />
+                            Lịch làm việc
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleOpenUpdateModal(staff)}
                             className="font-bold"
