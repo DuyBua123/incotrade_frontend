@@ -5,6 +5,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Lock,
+  MoreHorizontal,
+  Pencil,
   PlusCircle,
   RefreshCcw,
   Search,
@@ -25,6 +27,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -38,13 +46,17 @@ import {
 import useGetStaffs, {
   GET_STAFFS_DEFAULT_SIZE,
 } from "@/feature/staff/get-staffs/get-staffs.hook";
+import type { Staff } from "@/feature/staff/get-staffs/get-staffs.type";
 
 import CreateStaffModal from "./_components/CreateStaffModal";
+import UpdateStaffModal from "./_components/UpdateStaffModal";
 
 export default function AdminStaffsPage() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
 
   const {
@@ -78,6 +90,24 @@ export default function AdminStaffsPage() {
     setSuccessMessage(message);
     refresh();
     setIsCreateModalOpen(false);
+  }
+
+  function handleOpenUpdateModal(staff: Staff) {
+    setSuccessMessage("");
+    setSelectedStaff(staff);
+    setIsUpdateModalOpen(true);
+  }
+
+  function handleUpdateStaffUpdated(message: string) {
+    setSuccessMessage(message);
+    refresh();
+    setIsUpdateModalOpen(false);
+    setSelectedStaff(null);
+  }
+
+  function handleCloseUpdateModal() {
+    setIsUpdateModalOpen(false);
+    setSelectedStaff(null);
   }
 
   return (
@@ -235,7 +265,7 @@ export default function AdminStaffsPage() {
         )}
 
         <CardContent className="px-0">
-          <Table className="min-w-[900px]">
+          <Table className="min-w-[1000px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
@@ -249,6 +279,9 @@ export default function AdminStaffsPage() {
                 </TableHead>
                 <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
                   Trạng thái
+                </TableHead>
+                <TableHead className="px-5 py-4 text-right text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
+                  Thao tác
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -308,6 +341,35 @@ export default function AdminStaffsPage() {
                         {staff.isLocked ? "Đang khóa" : "Đang hoạt động"}
                       </Badge>
                     </TableCell>
+                    <TableCell className="px-5 py-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-lg"
+                              aria-label={`Mở thao tác nhân viên ${staff.fullName}`}
+                            />
+                          }
+                        >
+                          <MoreHorizontal aria-hidden="true" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-44"
+                          sideOffset={8}
+                        >
+                          <DropdownMenuItem
+                            onClick={() => handleOpenUpdateModal(staff)}
+                            className="font-bold"
+                          >
+                            <Pencil aria-hidden="true" />
+                            Cập nhật
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
             </TableBody>
@@ -362,6 +424,13 @@ export default function AdminStaffsPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCreated={handleCreateStaffCreated}
+      />
+      <UpdateStaffModal
+        key={selectedStaff?.id ?? "update-staff"}
+        isOpen={isUpdateModalOpen}
+        onClose={handleCloseUpdateModal}
+        onUpdated={handleUpdateStaffUpdated}
+        staff={selectedStaff}
       />
     </div>
   );
