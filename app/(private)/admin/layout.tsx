@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import AdminNavigation from "./_components/AdminNavigation";
+import AdminNavbarActions from "./_components/AdminNavbarActions";
 import { getMeServer } from "@/lib/security/auth.server";
 import { Metadata } from "next";
 
@@ -17,9 +18,6 @@ export default async function AdminLayout({children}: LayoutProps<"/admin">) {
   if (!currentUser) {
     redirect("/login");
   }
-
-  const fullName = currentUser.user.fullName || "Admin Incodetrade";
-  
 
   return (
     <main className="min-h-screen bg-surface text-on-surface">
@@ -50,15 +48,7 @@ export default async function AdminLayout({children}: LayoutProps<"/admin">) {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="max-w-[42vw] text-right sm:max-w-none">
-                <p className="truncate text-sm font-bold text-on-surface">
-                  {fullName}
-                </p>
-
-                <p className="text-xs font-semibold text-on-surface-variant">
-                  Admin
-                </p>
-              </div>
+              <AdminNavbarActions user={currentUser.user} />
             </div>
           </div>
         </header>

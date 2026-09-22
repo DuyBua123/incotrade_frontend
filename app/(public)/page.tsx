@@ -28,7 +28,7 @@ export default async function Home() {
           </div>
 
           <div className="flex justify-end">
-            <PublicNavbarActions initialUser={currentUser?.user ?? null} />
+            <PublicNavbarActions initialUser={currentUser?.user ? currentUser.user : null} />
           </div>
         </div>
       </nav>
