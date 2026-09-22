@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Lock,
+  PlusCircle,
   RefreshCcw,
   Search,
   SearchX,
@@ -38,10 +39,13 @@ import useGetStaffs, {
   GET_STAFFS_DEFAULT_SIZE,
 } from "@/feature/staff/get-staffs/get-staffs.hook";
 
+import CreateStaffModal from "./_components/CreateStaffModal";
 
 export default function AdminStaffsPage() {
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const {
     currentPage,
@@ -60,12 +64,20 @@ export default function AdminStaffsPage() {
 
   async function handleSearch(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSuccessMessage("");
     await search(searchValue);
   }
 
   async function handleClearSearch() {
     setSearchValue("");
+    setSuccessMessage("");
     await search("");
+  }
+
+  function handleCreateStaffCreated(message: string) {
+    setSuccessMessage(message);
+    refresh();
+    setIsCreateModalOpen(false);
   }
 
   return (
@@ -84,18 +96,43 @@ export default function AdminStaffsPage() {
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          onClick={refresh}
-          disabled={isLoading}
-          className="font-bold text-primary"
-        >
-          <RefreshCcw data-icon="inline-start" />
-          Tải lại
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            onClick={() => {
+              setSuccessMessage("");
+              refresh();
+            }}
+            disabled={isLoading}
+            className="font-bold text-primary"
+          >
+            <RefreshCcw data-icon="inline-start" />
+            Tải lại
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            onClick={() => {
+              setSuccessMessage("");
+              setIsCreateModalOpen(true);
+            }}
+            className="font-bold"
+          >
+            <PlusCircle data-icon="inline-start" />
+            Tạo nhân viên
+          </Button>
+        </div>
       </div>
+
+      {successMessage && (
+        <Alert className="border-success/20 bg-success/10 text-success">
+          <AlertDescription className="font-bold text-success">
+            {successMessage}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader className="pb-3">
@@ -320,6 +357,12 @@ export default function AdminStaffsPage() {
           </div>
         </CardFooter>
       </Card>
+
+      <CreateStaffModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreated={handleCreateStaffCreated}
+      />
     </div>
   );
 }
