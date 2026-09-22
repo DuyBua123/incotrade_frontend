@@ -20,10 +20,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import useCreateBooking from "@/feature/booking/create-booking/create-booking.hook";
 import useGetAvailableStaffs from "@/feature/staff/get-available-staffs/get-available-staffs.hook";
 import type {
   AvailableStaff,
@@ -41,6 +43,17 @@ function formatWorkSchedule(schedule: WorkSchedule) {
   return `${schedule.workDate} • ${schedule.startTime.slice(0, 5)} - ${schedule.endTime.slice(0, 5)}`;
 }
 
+function normalizeStartTime(value: string) {
+  const timeValue = value.includes("T") ? value.split("T")[1] : value;
+  const [hour = "", minute = "", second = "00"] = timeValue.split(":");
+
+  if (!hour || !minute) {
+    return value;
+  }
+
+  return `${hour}:${minute}:${second || "00"}`;
+}
+
 export default function CreateBookingModal({
   isOpen,
   onClose,
@@ -53,6 +66,15 @@ export default function CreateBookingModal({
   const [selectedStaffSchedules, setSelectedStaffSchedules] = useState<WorkSchedule[]>([]);
   const [selectedWorkScheduleId, setSelectedWorkScheduleId] = useState("");
   const [customerNote, setCustomerNote] = useState("");
+  const {
+    fieldErrors,
+    formError,
+    isSubmitting,
+    successMessage,
+    resetFormState,
+    resetMessages,
+    submitCreateBooking,
+  } = useCreateBooking();
   
   const {
     currentPage,
@@ -70,7 +92,7 @@ export default function CreateBookingModal({
 
   useEffect(() => {
 
-    const searchStaffTimeout = window.setTimeout(() => {      
+    const searchStaffTimeout = setTimeout(() => {      
       void getAvailableStaffs({
         page: 1,
         searchFullName: staffSearchValue,
@@ -78,15 +100,17 @@ export default function CreateBookingModal({
     }, 550);
 
     return () => clearTimeout(searchStaffTimeout);
-  }, [staffSearchValue]);
+  }, [staffSearchValue, getAvailableStaffs]);
 
   function resetForm() {
     setStartTime("");
     setStaffSearchValue("");
     setHasOpenedStaffPicker(false);
     setSelectedStaff(null);
+    setSelectedStaffSchedules([]);
     setSelectedWorkScheduleId("");
     setCustomerNote("");
+    resetFormState();
     reset();
   }
 
@@ -97,6 +121,7 @@ export default function CreateBookingModal({
 
   function handleStaffInputFocus() {
     setHasOpenedStaffPicker(true);
+    resetMessages();
   }
 
   function handleSelectStaff(staff: AvailableStaff) {
@@ -104,6 +129,7 @@ export default function CreateBookingModal({
     setSelectedWorkScheduleId("");
     setStaffSearchValue(staff.fullName);
     setSelectedStaffSchedules(staff.workSchedules);
+    resetMessages();
   }
 
   function handleStaffPageChange(page: number) {
@@ -113,8 +139,29 @@ export default function CreateBookingModal({
     });
   }
 
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!service) {
+      return;
+    }
+
+    const response = await submitCreateBooking({
+      serviceId: String(service.id),
+      staffScheduleId: selectedWorkScheduleId,
+      startTime: normalizeStartTime(startTime),
+      customerNote: customerNote.trim() ? customerNote.trim() : null,
+    });
+
+    if (!response) {
+      return;
+    }
+
+    setStartTime("");
+    setSelectedStaff(null);
+    setSelectedStaffSchedules([]);
+    setSelectedWorkScheduleId("");
+    setCustomerNote("");
   }
 
   return (
@@ -137,9 +184,30 @@ export default function CreateBookingModal({
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={(event) => void handleSubmit(event)}
           className="max-h-[calc(100vh-9rem)] overflow-y-auto px-5 py-5"
         >
+          {successMessage && (
+            <Alert className="mb-5 border-success/20 bg-success/10 text-success">
+              <AlertDescription className="font-bold text-success">
+                {successMessage}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {formError && (
+            <Alert
+              variant="destructive"
+              className="mb-5 border-danger/15 bg-danger/5"
+            >
+              <AlertDescription className="font-bold text-danger">
+                {formError}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <FieldError message={fieldErrors.serviceId} className="mb-4" />
+
           <div className="grid gap-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -148,11 +216,17 @@ export default function CreateBookingModal({
                 </Label>
                 <Input
                   id="create-booking-start-time"
-                  type="datetime-local"
+                  type="time"
+                  step="1"
                   value={startTime}
-                  onChange={(event) => setStartTime(event.target.value)}
+                  onChange={(event) => {
+                    setStartTime(event.target.value);
+                    resetMessages();
+                  }}
+                  aria-invalid={Boolean(fieldErrors.startTime)}
                   className="h-11 bg-slate-50 font-semibold focus-visible:bg-white"
                 />
+                <FieldError message={fieldErrors.startTime} />
               </div>
 
               <div className="space-y-2">
@@ -168,8 +242,10 @@ export default function CreateBookingModal({
                     onChange={(event) => {
                       setStaffSearchValue(event.target.value);
                       setSelectedStaff(null);
+                      setSelectedStaffSchedules([]);
                       setSelectedWorkScheduleId("");
                       setHasOpenedStaffPicker(true);
+                      resetMessages();
                     }}
                     placeholder="Tìm theo họ tên"
                     className="h-11 bg-slate-50 pl-10 font-semibold focus-visible:bg-white"
@@ -277,10 +353,12 @@ export default function CreateBookingModal({
                 {selectedStaffSchedules.length > 0 ? (
                   <RadioGroup
                     value={selectedWorkScheduleId}
-                    onValueChange={(value) =>
-                      setSelectedWorkScheduleId(String(value))
-                    }
+                    onValueChange={(value) => {
+                      setSelectedWorkScheduleId(String(value));
+                      resetMessages();
+                    }}
                     className="grid gap-2"
+                    aria-invalid={Boolean(fieldErrors.staffScheduleId)}
                   >
                     {selectedStaffSchedules.map((schedule) => (
                       <Label
@@ -303,6 +381,7 @@ export default function CreateBookingModal({
                     Nhân viên này chưa có lịch làm việc khả dụng.
                   </div>
                 )}
+                <FieldError message={fieldErrors.staffScheduleId} />
               </div>
             )}
 
@@ -313,10 +392,19 @@ export default function CreateBookingModal({
               <Textarea
                 id="create-booking-customer-note"
                 value={customerNote}
-                onChange={(event) => setCustomerNote(event.target.value)}
+                onChange={(event) => {
+                  setCustomerNote(event.target.value);
+                  resetMessages();
+                }}
+                maxLength={255}
+                aria-invalid={Boolean(fieldErrors.customerNote)}
                 placeholder="Nhập yêu cầu hoặc ghi chú thêm"
                 className="min-h-28 resize-y bg-slate-50 font-semibold leading-6 focus-visible:bg-white"
               />
+              <FieldError message={fieldErrors.customerNote} />
+              <p className="text-xs font-semibold text-on-surface-variant">
+                {customerNote.length.toLocaleString("vi-VN")} / 255
+              </p>
             </div>
           </div>
 
@@ -325,12 +413,17 @@ export default function CreateBookingModal({
               type="button"
               variant="outline"
               onClick={closeModal}
+              disabled={isSubmitting}
               className="font-bold"
             >
               Hủy
             </Button>
-            <Button type="submit" className="font-bold">
-              <Send data-icon="inline-start" />
+            <Button type="submit" disabled={isSubmitting} className="font-bold">
+              {isSubmitting ? (
+                <LoaderCircle className="animate-spin" data-icon="inline-start" />
+              ) : (
+                <Send data-icon="inline-start" />
+              )}
               Gửi yêu cầu
             </Button>
           </DialogFooter>

@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { api } from "@/lib/api/api";
 import type {
@@ -46,23 +46,24 @@ export default function useGetAvailableStaffs() {
   const [errorMessage, setErrorMessage] = useState("");
 
 
-  async function getAvailableStaffs({
-    page = GET_AVAILABLE_STAFFS_DEFAULT_PAGE,
-    size = GET_AVAILABLE_STAFFS_DEFAULT_SIZE,
-    searchFullName,
-  }: GetAvailableStaffsRequest) {
+  const getAvailableStaffs = useCallback(
+    async ({
+      page = GET_AVAILABLE_STAFFS_DEFAULT_PAGE,
+      size = GET_AVAILABLE_STAFFS_DEFAULT_SIZE,
+      searchFullName,
+    }: GetAvailableStaffsRequest) => {
 
-    setIsLoading(true);
-    setErrorMessage("");
+      setIsLoading(true);
+      setErrorMessage("");
 
-    try {
-      const response = await api.get<SuccessResponse<PageableResponse<AvailableStaff[]>>>("/staffs/get-available-staffs", {
-        params: {
-          page: String(page),
-          size: String(size),
-          searchFullName: searchFullName?.trim() || null,
-        },
-      });
+      try {
+        const response = await api.get<SuccessResponse<PageableResponse<AvailableStaff[]>>>("/staffs/get-available-staffs", {
+          params: {
+            page: String(page),
+            size: String(size),
+            searchFullName: searchFullName?.trim() || null,
+          },
+        });
 
         setStaffs(response.data.data.items);
         setPagination(response.data.data.pagination);
@@ -76,7 +77,9 @@ export default function useGetAvailableStaffs() {
       } finally {
         setIsLoading(false);
       }
-  }
+    },
+    []
+  );
 
   function reset() {
     setStaffs([]);
