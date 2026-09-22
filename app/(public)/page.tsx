@@ -20,7 +20,7 @@ export default async function Home() {
 
           <div className="flex justify-center">
             <a
-              href="#"
+              href="/available-services"
               className="rounded-lg px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               Dịch vụ
@@ -44,7 +44,7 @@ export default async function Home() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
-              href="#"
+              href="/available-services"
               className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               Xem dịch vụ
