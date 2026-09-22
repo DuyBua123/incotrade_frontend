@@ -146,17 +146,17 @@ export default function useGetMyBookings() {
   return {
     activeFilters,
     bookings,
-    clearFilters,
     currentPage,
     errorMessage,
-    filter,
-    goToPage,
     hasNext,
     hasPrevious,
     isLoading,
     pageSize,
-    refresh,
     totalItems,
     totalPages,
+    filter,
+    clearFilters,
+    goToPage,
+    refresh,
   };
 }

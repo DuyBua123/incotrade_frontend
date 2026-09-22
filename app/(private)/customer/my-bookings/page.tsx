@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { SubmitEvent, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -90,27 +90,24 @@ export default function CustomerMyBookingsPage() {
   const {
     activeFilters,
     bookings,
-    clearFilters,
     currentPage,
     errorMessage,
-    filter,
-    goToPage,
     hasNext,
     hasPrevious,
     isLoading,
     pageSize,
-    refresh,
     totalItems,
     totalPages,
+    filter,
+    clearFilters,
+    goToPage,
+    refresh,
   } = useGetMyBookings();
   const [servedDate, setServedDate] = useState(activeFilters.servedDate);
-  const [status, setStatus] = useState<GetMyBookingsFilters["status"]>(
-    activeFilters.status
-  );
-  const hasFilters = Boolean(activeFilters.servedDate || activeFilters.status);
+  const [status, setStatus] = useState<GetMyBookingsFilters["status"]>(activeFilters.status);
 
   
-  async function handleFilter(event: FormEvent<HTMLFormElement>) {
+  async function handleFilter(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     await filter({ servedDate, status });
   }
@@ -219,7 +216,7 @@ export default function CustomerMyBookingsPage() {
                 Lọc
               </Button>
 
-              {(servedDate || status || hasFilters) && (
+              {(servedDate || status) && (
                 <Button
                   type="button"
                   variant="outline"
@@ -338,7 +335,7 @@ export default function CustomerMyBookingsPage() {
                         variant="outline"
                         className="border-service-cyan/15 bg-service-cyan/10 font-black text-service-cyan"
                       >
-                        #{booking.serviceId}
+                        {booking.serviceName}
                       </Badge>
                     </TableCell>
                     <TableCell className="px-5 py-4">
@@ -346,7 +343,7 @@ export default function CustomerMyBookingsPage() {
                         variant="outline"
                         className="border-primary-teal/15 bg-primary-teal/10 font-black text-primary-teal"
                       >
-                        #{booking.staffId}
+                        {booking.staffFullName}
                       </Badge>
                     </TableCell>
                     <TableCell className="px-5 py-4">

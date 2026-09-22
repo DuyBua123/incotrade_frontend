@@ -11,8 +11,8 @@ export type MyBooking = {
   id: number;
   bookingCode: string;
   customerId: number;
-  serviceId: number;
-  staffId: number;
+  serviceName: string;
+  staffFullName: string;
   servedDate: string;
   startTime: string;
   endTime: string;
