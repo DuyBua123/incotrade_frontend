@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useState } from "react";
 import {
   ArrowLeft,
   CalendarDays,
+  CalendarPlus,
   ChevronLeft,
   ChevronRight,
   Clock3,
@@ -35,8 +37,12 @@ import {
 } from "@/components/ui/table";
 import useGetStaffSchedules from "@/feature/staff/get-staff-schedules/get-staff-schedules.hook";
 
+import CreateStaffScheduleModal from "./_components/CreateStaffScheduleModal";
+
 export default function StaffSchedulesPage() {
   const { id } = useParams<{ id: string }>();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const {
     currentPage,
     errorMessage,
@@ -50,6 +56,12 @@ export default function StaffSchedulesPage() {
     goToPage,
     refresh,
   } = useGetStaffSchedules(id);
+
+  function handleCreateScheduleCreated(message: string) {
+    setSuccessMessage(message);
+    refresh();
+    setIsCreateModalOpen(false);
+  }
 
   return (
     <div className="space-y-6">
@@ -78,18 +90,43 @@ export default function StaffSchedulesPage() {
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          onClick={refresh}
-          disabled={isLoading}
-          className="font-bold text-primary"
-        >
-          <RefreshCcw data-icon="inline-start" />
-          Tải lại
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            onClick={() => {
+              setSuccessMessage("");
+              refresh();
+            }}
+            disabled={isLoading}
+            className="font-bold text-primary"
+          >
+            <RefreshCcw data-icon="inline-start" />
+            Tải lại
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            onClick={() => {
+              setSuccessMessage("");
+              setIsCreateModalOpen(true);
+            }}
+            className="font-bold"
+          >
+            <CalendarPlus data-icon="inline-start" />
+            Tạo lịch làm việc
+          </Button>
+        </div>
       </div>
+
+      {successMessage && (
+        <Alert className="border-success/20 bg-success/10 text-success">
+          <AlertDescription className="font-bold text-success">
+            {successMessage}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card className="gap-0 py-0">
         <CardHeader className="border-b border-outline-variant/15 py-4">
@@ -255,6 +292,13 @@ export default function StaffSchedulesPage() {
           </div>
         </CardFooter>
       </Card>
+
+      <CreateStaffScheduleModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreated={handleCreateScheduleCreated}
+        staffId={id}
+      />
     </div>
   );
 }
