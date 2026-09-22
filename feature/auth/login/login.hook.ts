@@ -7,7 +7,7 @@ import {
   ERROR_CODES,
   type FailureResponse,
 } from "@/lib/api/failure.response.";
-import { getAccessToken, setAccessToken, setCurrentUser } from "@/lib/security/auth.store";
+import { setAccessToken, setCurrentUser } from "@/lib/security/auth.store";
 
 import type {
   LoginFieldErrors,

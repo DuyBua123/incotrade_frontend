@@ -1,7 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function Home() {
+import PublicNavbarActions from "./_components/PublicNavbarActions";
+import { getMeServer } from "@/lib/security/auth.server";
+
+export default async function Home() {
+  const currentUser = await getMeServer();
+
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f8f9ff_0%,#ffffff_42%,#f7f9ff_100%)] text-on-surface">
       <nav className="sticky top-0 z-50 border-b border-outline-variant/20 bg-white/90 backdrop-blur">
@@ -23,12 +28,7 @@ export default function Home() {
           </div>
 
           <div className="flex justify-end">
-            <Link
-              href="/login"
-              className="rounded-lg px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-            >
-              Đăng nhập
-            </Link>
+            <PublicNavbarActions initialUser={currentUser?.user ?? null} />
           </div>
         </div>
       </nav>
