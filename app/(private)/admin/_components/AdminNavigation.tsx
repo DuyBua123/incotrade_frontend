@@ -16,7 +16,7 @@ const adminNavigation = [
   },
   {
     label: "Quản lý staff",
-    href: "/admin/staff",
+    href: "/admin/staffs",
     icon: UsersRound,
   },
   {
