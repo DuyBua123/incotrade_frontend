@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import AdminNavigation from "./_components/AdminNavigation";
 import AdminNavbarActions from "./_components/AdminNavbarActions";
-import { getMeServer } from "@/lib/security/auth.server";
+import { requireAdmin } from "@/lib/security/auth.server";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -12,12 +11,9 @@ export const metadata: Metadata = {
 
 
 export default async function AdminLayout({children}: LayoutProps<"/admin">) {
-  const currentUser = await getMeServer();  
 
   // Authentication guard
-  if (!currentUser) {
-    redirect("/login");
-  }
+  const user = await requireAdmin();
 
   return (
     <main className="min-h-screen bg-surface text-on-surface">
@@ -48,7 +44,7 @@ export default async function AdminLayout({children}: LayoutProps<"/admin">) {
             </div>
 
             <div className="flex items-center gap-3">
-              <AdminNavbarActions user={currentUser.user} />
+              <AdminNavbarActions user={user} />
             </div>
           </div>
         </header>
