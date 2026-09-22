@@ -16,11 +16,15 @@ import { Input } from "@/components/ui/input";
 import useGetAvailableServices, {
   GET_AVAILABLE_SERVICES_DEFAULT_SIZE,
 } from "@/feature/service/get-available-services/get-available-services.hook";
+import type { AvailableService } from "@/feature/service/get-available-services/get-available-services.type";
 
+import CreateBookingModal from "./CreateBookingModal";
 import { ServiceCard, ServiceCardSkeleton } from "./ServiceCard";
 
 export default function AvailableServicesBody() {
   const [searchValue, setSearchValue] = useState("");
+  const [selectedService, setSelectedService] =
+    useState<AvailableService | null>(null);
   const {
     currentPage,
     errorMessage,
@@ -38,6 +42,14 @@ export default function AvailableServicesBody() {
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     search(searchValue);
+  }
+
+  function handleOpenBookingModal(service: AvailableService) {
+    setSelectedService(service);
+  }
+
+  function handleCloseBookingModal() {
+    setSelectedService(null);
   }
 
   return (
@@ -134,7 +146,11 @@ export default function AvailableServicesBody() {
 
           {!isLoading &&
             services.map((service) => (
-              <ServiceCard key={service.id} service={service} />
+              <ServiceCard
+                key={service.id}
+                service={service}
+                onBook={handleOpenBookingModal}
+              />
             ))}
         </div>
 
@@ -182,6 +198,12 @@ export default function AvailableServicesBody() {
           </div>
         </div>
       </section>
+
+      <CreateBookingModal
+        isOpen={Boolean(selectedService)}
+        onClose={handleCloseBookingModal}
+        service={selectedService}
+      />
     </>
   );
 }

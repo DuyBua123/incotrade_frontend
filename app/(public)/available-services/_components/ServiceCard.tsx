@@ -24,7 +24,12 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
-export function ServiceCard({ service }: { service: AvailableService }) {
+type ServiceCardProps = {
+  onBook: (service: AvailableService) => void;
+  service: AvailableService;
+};
+
+export function ServiceCard({ onBook, service }: ServiceCardProps) {
   return (
     <Card className="h-full gap-0 border border-outline-variant/20 bg-white py-0 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <CardHeader className="border-b border-outline-variant/15 p-5">
@@ -76,7 +81,12 @@ export function ServiceCard({ service }: { service: AvailableService }) {
       </CardContent>
 
       <CardFooter className="border-t border-outline-variant/15 bg-white p-5">
-        <Button type="button" size="lg" className="h-11 w-full gap-2 font-bold">
+        <Button
+          type="button"
+          size="lg"
+          onClick={() => onBook(service)}
+          className="h-11 w-full gap-2 font-bold"
+        >
           <CalendarPlus data-icon="inline-start" />
           Đặt lịch
         </Button>
