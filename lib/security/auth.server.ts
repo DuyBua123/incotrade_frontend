@@ -63,3 +63,13 @@ export async function requireAdmin() {
 
     return user;
 }
+
+export async function requireCustomer() {
+    const user = await requireAuth();
+    
+    if (user.role !== "CUSTOMER") {
+        redirect("/403");
+    }
+
+    return user;
+}

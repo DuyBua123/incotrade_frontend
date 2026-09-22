@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LayoutDashboard, LogOut } from "lucide-react";
+import { ChevronDown, Home, LogOut } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -14,45 +13,31 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { api } from "@/lib/api/api";
 import type { SuccessResponse } from "@/lib/api/success.response.";
-import type { MeUserResponse } from "@/lib/security/me.response";
 import {
   clearAccessToken,
   clearCurrentUser,
   getCurrentUser,
   setCurrentUser,
 } from "@/lib/security/auth.store";
+import type { MeUserResponse } from "@/lib/security/me.response";
 
-type PublicNavbarActionsProps = {
-  initialUser: MeUserResponse | null;
+type CustomerNavbarActionsProps = {
+  user: MeUserResponse;
 };
 
-export default function PublicNavbarActions({
-  initialUser,
-}: PublicNavbarActionsProps) {
+export default function CustomerNavbarActions({
+  user,
+}: CustomerNavbarActionsProps) {
   const router = useRouter();
-
   const [hasLoggedOut, setHasLoggedOut] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const user = hasLoggedOut ? null : initialUser;
+  const displayUser = hasLoggedOut ? null : getCurrentUser() ?? user;
 
   useEffect(() => {
-    if (initialUser && !getCurrentUser()) {
-      setCurrentUser(initialUser);
+    if (!getCurrentUser()) {
+      setCurrentUser(user);
     }
-  }, [initialUser]);
-
-
-  function goToDashboard() {
-    if (!user) {
-      router.push("/login")
-    }
-    else if (user.role === "ADMIN") {
-      router.push("/admin")
-    } 
-    else if (user.role === "CUSTOMER") {
-      router.push("/customer/my-bookings")
-    }
-  }
+  }, [user]);
 
   async function handleLogout() {
     if (isLoggingOut) {
@@ -77,34 +62,35 @@ export default function PublicNavbarActions({
     }
   }
 
-  if (!user) {
-    return (
-      <Link
-        href="/login"
-        className="rounded-lg px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-      >
-        &#272;&#259;ng nh&#7853;p
-      </Link>
-    );
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="inline-flex max-w-[56vw] items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-        aria-label="Account menu"
+        className="flex max-w-[42vw] items-center gap-2 rounded-lg px-3 py-2 text-right transition hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:max-w-none"
+        aria-label="Customer account menu"
       >
-        <span className="truncate">{user.fullName}</span>
-        <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-bold text-on-surface">
+            {displayUser?.fullName || "Khách hàng Incodetrade"}
+          </span>
+
+          <span className="block text-xs font-semibold text-on-surface-variant">
+            Customer
+          </span>
+        </span>
+
+        <ChevronDown
+          className="size-4 shrink-0 text-on-surface-variant"
+          aria-hidden="true"
+        />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem
           className="cursor-pointer px-2 py-2"
-          onClick={() => goToDashboard()}
+          onClick={() => router.push("/")}
         >
-          <LayoutDashboard className="size-4" aria-hidden="true" />
-          Go to Dashboard
+          <Home className="size-4" aria-hidden="true" />
+          Go to Home
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
