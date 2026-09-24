@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import {
   ERROR_CODES,
   type FailureResponse,
@@ -82,7 +82,7 @@ export default function useCreateBooking() {
     resetMessages();
 
     try {
-      const { data } = await api.post<SuccessResponse<CreateBookingResponse>>(
+      const { data } = await clientApi.post<SuccessResponse<CreateBookingResponse>>(
         "/bookings/create-booking",
         request);
 

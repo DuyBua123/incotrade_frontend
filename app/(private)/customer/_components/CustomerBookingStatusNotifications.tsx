@@ -13,7 +13,7 @@ import {
   RECEIVE_UPDATING_BOOKING_STATUS_MESSAGE,
   UPDATE_BOOKING_STATUS_NOTIFICATION_HUB_URL,
 } from "@/lib/realtime/booking-status-notifications";
-import { getAccessToken } from "@/lib/security/auth.store";
+import { getAccessToken, useAuthStore } from "@/lib/security/auth.store";
 
 type BookingStatusToast = {
   id: number;
@@ -23,19 +23,17 @@ type BookingStatusToast = {
 const TOAST_DURATION_MS = 7000;
 
 export default function CustomerBookingStatusNotifications() {
+  const accessToken = useAuthStore((state) => state.accessToken);
   const [toasts, setToasts] = useState<BookingStatusToast[]>([]);
   const toastIdRef = useRef(0);
 
   useEffect(() => {
 
-    const connection = new HubConnectionBuilder()
-      .withUrl(UPDATE_BOOKING_STATUS_NOTIFICATION_HUB_URL, {
-        accessTokenFactory: () => getAccessToken(),
-        withCredentials: true,
-      })
-      .withAutomaticReconnect()
-      .configureLogging(LogLevel.Warning)
-      .build();
+    console.log(accessToken);
+    
+    if (!accessToken) {
+      return;
+    }
 
     function removeToast(id: number) {
       setToasts((currentToasts) =>
@@ -61,11 +59,6 @@ export default function CustomerBookingStatusNotifications() {
       window.setTimeout(() => removeToast(id), TOAST_DURATION_MS);
     }
 
-    connection.on(
-      RECEIVE_UPDATING_BOOKING_STATUS_MESSAGE,
-      handleNotification
-    );
-
     async function startConnection() {
       try {
         if (connection.state === HubConnectionState.Disconnected) {
@@ -75,6 +68,22 @@ export default function CustomerBookingStatusNotifications() {
         console.error("Unable to start booking status notification hub.", error);
       }
     }
+
+
+    const connection = new HubConnectionBuilder()
+      .withUrl(UPDATE_BOOKING_STATUS_NOTIFICATION_HUB_URL, {
+        accessTokenFactory: () => accessToken,
+        withCredentials: true,
+      })
+      .withAutomaticReconnect()
+      .configureLogging(LogLevel.Warning)
+      .build();
+
+
+    connection.on(
+      RECEIVE_UPDATING_BOOKING_STATUS_MESSAGE,
+      handleNotification
+    );
 
     void startConnection();
 
@@ -88,7 +97,7 @@ export default function CustomerBookingStatusNotifications() {
         void connection.stop();
       }
     };
-  }, []);
+  }, [accessToken]);
 
   if (toasts.length === 0) {
     return null;

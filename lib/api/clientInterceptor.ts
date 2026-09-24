@@ -2,7 +2,7 @@
 
 import { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-import { api } from "./api";
+import { clientApi } from "./api";
 import {
   ERROR_CODES,
   type FailureResponse,
@@ -24,7 +24,7 @@ let isClientInterceptorSetup = false;
 
 function refreshAccessToken(): Promise<string> {
   if (!refreshPromise) {
-    refreshPromise = api
+    refreshPromise = clientApi
       .post<SuccessResponse<RefreshTokenResponse>>("/auth/refresh-token")
       .then(({ data }) => {
         return data.data.accessToken;
@@ -44,7 +44,7 @@ export const setupClientInterceptors = (): void => {
   
   isClientInterceptorSetup = true;
 
-  api.interceptors.request.use((config) => {
+  clientApi.interceptors.request.use((config) => {
     const token = getAccessToken();    
         
     if (token) {      
@@ -54,7 +54,7 @@ export const setupClientInterceptors = (): void => {
     return config;
   });
 
-  api.interceptors.response.use(
+  clientApi.interceptors.response.use(
     (response) => response,
 
     async (error: AxiosError<FailureResponse<string>>) => {
@@ -88,7 +88,7 @@ export const setupClientInterceptors = (): void => {
 
       request.headers.Authorization = `Bearer ${token}`;
 
-      return api(request);
+      return clientApi(request);
     }
   );
 };

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { type SubmitEvent, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import {
   ERROR_CODES,
   type FailureResponse,
@@ -94,7 +94,7 @@ export default function useCreateStaff() {
     setFormError("");
 
     try {
-      const { data } = await api.post<SuccessResponse<CreateStaffResponse>>(
+      const { data } = await clientApi.post<SuccessResponse<CreateStaffResponse>>(
         "/staffs/create-staff",
         buildRequest(form)
       );

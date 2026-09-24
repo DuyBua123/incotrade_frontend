@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { api } from "../api/api";
+import { serverApi } from "../api/api";
 import { MeResponse } from "./me.response";
 import { SuccessResponse } from "../api/success.response.";
 import { redirect } from "next/navigation";
@@ -12,7 +12,7 @@ export async function getMeServer(): Promise<MeResponse | null> {
         
         if (!refreshToken) return null;  
 
-        const response = await api.get<SuccessResponse<MeResponse>>("/auth/me", {
+        const response = await serverApi.get<SuccessResponse<MeResponse>>("/auth/me", {
             headers: {
                 Cookie: `refreshToken=${refreshToken}`,
             },

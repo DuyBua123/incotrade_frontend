@@ -2,7 +2,7 @@ import axios from "axios";
 import { SubmitEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import {
   ERROR_CODES,
   type FailureResponse,
@@ -76,7 +76,7 @@ export default function useLogin() {
     setFormError("");
 
     try {
-      const { data } = await api.post<SuccessResponse<LoginResponse>>("/auth/login", form);      
+      const { data } = await clientApi.post<SuccessResponse<LoginResponse>>("/auth/login", form);      
 
       setAccessToken(data.data.accessToken);
       setCurrentUser(data.data.user);      

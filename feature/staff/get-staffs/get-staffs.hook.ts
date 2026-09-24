@@ -3,7 +3,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import type {
   PageableResponse,
   SuccessResponse,
@@ -45,7 +45,7 @@ export default function useGetStaffs(searchValue: string) {
       setErrorMessage("");
 
       try {
-        const response = await api.get<SuccessResponse<PageableResponse<Staff[]>>>(
+        const response = await clientApi.get<SuccessResponse<PageableResponse<Staff[]>>>(
           "/staffs/get-staffs",
           {
             params: {
@@ -78,7 +78,7 @@ export default function useGetStaffs(searchValue: string) {
     setErrorMessage("");
 
     try {
-      const response = await api.get<SuccessResponse<PageableResponse<Staff[]>>>(
+      const response = await clientApi.get<SuccessResponse<PageableResponse<Staff[]>>>(
         "/staffs/get-staffs",
         {
           params: {
@@ -109,7 +109,7 @@ export default function useGetStaffs(searchValue: string) {
     setErrorMessage("");
 
     try {
-      const response = await api.get<SuccessResponse<PageableResponse<Staff[]>>>(
+      const response = await clientApi.get<SuccessResponse<PageableResponse<Staff[]>>>(
         "/staffs/get-staffs",
         {
           params: {
@@ -140,7 +140,7 @@ export default function useGetStaffs(searchValue: string) {
     setErrorMessage("");
 
     try {
-      const response = await api.get<SuccessResponse<PageableResponse<Staff[]>>>(
+      const response = await clientApi.get<SuccessResponse<PageableResponse<Staff[]>>>(
         "/staffs/get-staffs",
         {
           params: {

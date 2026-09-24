@@ -3,7 +3,7 @@
 import axios from "axios";
 import { useCallback, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import type {
   Pageable,
   PageableResponse,
@@ -57,7 +57,7 @@ export default function useGetAvailableStaffs() {
       setErrorMessage("");
 
       try {
-        const response = await api.get<SuccessResponse<PageableResponse<AvailableStaff[]>>>("/staffs/get-available-staffs", {
+        const response = await clientApi.get<SuccessResponse<PageableResponse<AvailableStaff[]>>>("/staffs/get-available-staffs", {
           params: {
             page: String(page),
             size: String(size),

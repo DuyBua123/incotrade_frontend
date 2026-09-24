@@ -3,7 +3,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import type {
   Pageable,
   PageableResponse,
@@ -43,7 +43,7 @@ async function getAvailableServices({
   size = GET_AVAILABLE_SERVICES_DEFAULT_SIZE,
   searchName,
 }: GetAvailableServicesRequest) {
-  const response = await api.get<
+  const response = await clientApi.get<
     SuccessResponse<PageableResponse<AvailableService[]>>
   >("/services/get-available-services", {
     params: {

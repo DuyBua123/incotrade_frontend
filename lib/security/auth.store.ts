@@ -1,43 +1,64 @@
+"use client";
 
 import axios from "axios";
-import { api } from "../api/api";
+import { create } from "zustand";
+
+import { clientApi } from "../api/api";
 import { FailureResponse } from "../api/failure.response.";
 import { SuccessResponse } from "../api/success.response.";
 import { MeResponse, MeUserResponse } from "./me.response";
 
+type AuthState = {
+    accessToken: string;
+    currentUser: MeUserResponse | null;
+    setAccessToken: (accessToken: string) => void;
+    setCurrentUser: (user: MeUserResponse | null) => void;
+    clearAccessToken: () => void;
+    clearCurrentUser: () => void;
+    clearAuth: () => void;
+    isAuthenticated: () => boolean;
+};
 
-let accessToken: string = "";
-let currentUser: MeUserResponse | null = null;
+export const useAuthStore = create<AuthState>((set, get) => ({
+    accessToken: "",
+    currentUser: null,
+    setAccessToken: (accessToken) => set({ accessToken }),
+    setCurrentUser: (currentUser) => set({ currentUser }),
+    clearAccessToken: () => set({ accessToken: "" }),
+    clearCurrentUser: () => set({ currentUser: null }),
+    clearAuth: () => set({ accessToken: "", currentUser: null }),
+    isAuthenticated: () => Boolean(get().accessToken.trim()),
+}));
 
 
 export function getAccessToken(): string {
-    return accessToken;
+    return useAuthStore.getState().accessToken;
 }
 export function getCurrentUser(): MeUserResponse | null {
-    return currentUser;
+    return useAuthStore.getState().currentUser;
 }
 
 export function setAccessToken(newAccessToken: string) {
-    accessToken = newAccessToken;
+    useAuthStore.getState().setAccessToken(newAccessToken);
 }
 export function setCurrentUser(user: MeUserResponse) {
-    currentUser = user;
+    useAuthStore.getState().setCurrentUser(user);
 }
 
 export function clearAccessToken() {
-    accessToken = "";
+    useAuthStore.getState().clearAccessToken();
 }
 export function clearCurrentUser() {
-    currentUser = null;
+    useAuthStore.getState().clearCurrentUser();
 }
 
 export function isAuthenticated() {
-    return Boolean(accessToken.trim()); 
+    return useAuthStore.getState().isAuthenticated(); 
 }
 
 export async function getMeClient() {
     try {
-        const response = await api.get<SuccessResponse<MeResponse>>("/auth/me");
+        const response = await clientApi.get<SuccessResponse<MeResponse>>("/auth/me");
 
         setAccessToken(response.data.data.accessToken);
         setCurrentUser(response.data.data.user);

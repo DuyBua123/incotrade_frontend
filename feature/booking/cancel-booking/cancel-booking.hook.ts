@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import type { FailureResponse } from "@/lib/api/failure.response.";
 import type { SuccessResponse } from "@/lib/api/success.response.";
 
@@ -40,7 +40,7 @@ export default function useCancelBooking() {
     setErrorMessage("");
 
     try {
-      const { data } = await api.patch<SuccessResponse<CancelBookingResponse>>(
+      const { data } = await clientApi.patch<SuccessResponse<CancelBookingResponse>>(
         "/bookings/cancel-booking",
         request
       );
