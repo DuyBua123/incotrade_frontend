@@ -1,6 +1,5 @@
 "use client";
 
-import { SubmitEvent, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -33,13 +32,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useGetMyBookings, {
-  GET_MY_BOOKINGS_DEFAULT_SIZE,
-} from "@/feature/booking/get-my-bookings/get-my-bookings.hook";
+import { GET_MY_BOOKINGS_DEFAULT_SIZE } from "@/feature/booking/get-my-bookings/get-my-bookings.hook";
+import useCustomerMyBookingsPage from "@/feature/booking/get-my-bookings/customer-my-bookings-page.hook";
 import {
   BOOKING_STATUS_VALUES,
   type BookingStatus,
-  type GetMyBookingsFilters
 } from "@/feature/booking/get-my-bookings/get-my-bookings.type";
 
 const STATUS_LABELS: Record<BookingStatus, string> = {
@@ -88,7 +85,6 @@ function formatTime(value: string) {
 
 export default function CustomerMyBookingsPage() {
   const {
-    activeFilters,
     bookings,
     currentPage,
     errorMessage,
@@ -98,25 +94,15 @@ export default function CustomerMyBookingsPage() {
     pageSize,
     totalItems,
     totalPages,
-    filter,
-    clearFilters,
+    servedDate,
+    status,
     goToPage,
+    setServedDate,
+    handleClearFilters,
+    handleFilter,
+    handleStatusChange,
     refresh,
-  } = useGetMyBookings();
-  const [servedDate, setServedDate] = useState(activeFilters.servedDate);
-  const [status, setStatus] = useState<GetMyBookingsFilters["status"]>(activeFilters.status);
-
-  
-  async function handleFilter(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    await filter({ servedDate, status });
-  }
-
-  async function handleClearFilters() {
-    setServedDate("");
-    setStatus("");
-    await clearFilters();
-  }
+  } = useCustomerMyBookingsPage();
 
   return (
     <div className="space-y-6">
@@ -191,9 +177,7 @@ export default function CustomerMyBookingsPage() {
               <select
                 id="booking-status"
                 value={status}
-                onChange={(event) =>
-                  setStatus(event.target.value as GetMyBookingsFilters["status"])
-                }
+                onChange={(event) => handleStatusChange(event.target.value)}
                 className="h-11 w-full rounded-lg border border-input bg-slate-50 px-4 text-sm font-semibold text-on-surface outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
               >
                 <option value="">Tất cả trạng thái</option>

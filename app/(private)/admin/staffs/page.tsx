@@ -1,6 +1,5 @@
 "use client";
 
-import { SubmitEvent, useState } from "react";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -45,22 +44,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useGetStaffs, {
-  GET_STAFFS_DEFAULT_SIZE,
-} from "@/feature/staff/get-staffs/get-staffs.hook";
-import type { Staff } from "@/feature/staff/get-staffs/get-staffs.type";
+import { GET_STAFFS_DEFAULT_SIZE } from "@/feature/staff/get-staffs/get-staffs.hook";
+import useAdminStaffsPage from "@/feature/staff/get-staffs/admin-staffs-page.hook";
 
 import CreateStaffModal from "./_components/CreateStaffModal";
 import UpdateStaffModal from "./_components/UpdateStaffModal";
 
 export default function AdminStaffsPage() {
-
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
-  const [successMessage, setSuccessMessage] = useState("");
-
   const {
     currentPage,
     errorMessage,
@@ -71,46 +61,23 @@ export default function AdminStaffsPage() {
     staffs,
     totalItems,
     totalPages,
+    isCreateModalOpen,
+    isUpdateModalOpen,
+    searchValue,
+    selectedStaff,
+    successMessage,
     goToPage,
-    refresh,
-    search,
-  } = useGetStaffs(searchValue);
-
-  async function handleSearch(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSuccessMessage("");
-    await search(searchValue);
-  }
-
-  async function handleClearSearch() {
-    setSearchValue("");
-    setSuccessMessage("");
-    await search("");
-  }
-
-  function handleCreateStaffCreated(message: string) {
-    setSuccessMessage(message);
-    refresh();
-    setIsCreateModalOpen(false);
-  }
-
-  function handleOpenUpdateModal(staff: Staff) {
-    setSuccessMessage("");
-    setSelectedStaff(staff);
-    setIsUpdateModalOpen(true);
-  }
-
-  function handleUpdateStaffUpdated(message: string) {
-    setSuccessMessage(message);
-    refresh();
-    setIsUpdateModalOpen(false);
-    setSelectedStaff(null);
-  }
-
-  function handleCloseUpdateModal() {
-    setIsUpdateModalOpen(false);
-    setSelectedStaff(null);
-  }
+    setSearchValue,
+    handleClearSearch,
+    handleCloseCreateModal,
+    handleCloseUpdateModal,
+    handleCreateStaffCreated,
+    handleOpenCreateModal,
+    handleOpenUpdateModal,
+    handleRefresh,
+    handleSearch,
+    handleUpdateStaffUpdated,
+  } = useAdminStaffsPage();
 
   return (
     <div className="space-y-6">
@@ -133,10 +100,7 @@ export default function AdminStaffsPage() {
             type="button"
             variant="outline"
             size="lg"
-            onClick={() => {
-              setSuccessMessage("");
-              refresh();
-            }}
+            onClick={handleRefresh}
             disabled={isLoading}
             className="font-bold text-primary"
           >
@@ -146,10 +110,7 @@ export default function AdminStaffsPage() {
           <Button
             type="button"
             size="lg"
-            onClick={() => {
-              setSuccessMessage("");
-              setIsCreateModalOpen(true);
-            }}
+            onClick={handleOpenCreateModal}
             className="font-bold"
           >
             <PlusCircle data-icon="inline-start" />
@@ -435,7 +396,7 @@ export default function AdminStaffsPage() {
 
       <CreateStaffModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={handleCloseCreateModal}
         onCreated={handleCreateStaffCreated}
       />
       <UpdateStaffModal

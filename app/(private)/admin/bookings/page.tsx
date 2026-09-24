@@ -1,7 +1,5 @@
 "use client";
 
-import type { SubmitEvent } from "react";
-import { useState } from "react";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -43,17 +41,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useGetBookings, {
-  GET_BOOKINGS_DEFAULT_SIZE,
-} from "@/feature/booking/get-bookings/get-bookings.hook";
+import { GET_BOOKINGS_DEFAULT_SIZE } from "@/feature/booking/get-bookings/get-bookings.hook";
+import useAdminBookingsPage from "@/feature/booking/get-bookings/admin-bookings-page.hook";
 import {
   BOOKING_STATUS_VALUES,
-  type Booking,
   type BookingStatus,
-  type GetBookingsFilters,
 } from "@/feature/booking/get-bookings/get-bookings.type";
-import useCompleteBooking from "@/feature/booking/complete-booking/complete-booking.hook";
-import useConfirmBooking from "@/feature/booking/confirm-booking/confirm-booking.hook";
 
 type BookingStatusAction = "confirm" | "complete";
 
@@ -138,7 +131,7 @@ function getBookingStatusActionLabel(action: BookingStatusAction) {
 
 export default function AdminBookingsPage() {
   const {
-    activeFilters,
+    actionErrorMessage,
     bookings,
     currentPage,
     errorMessage,
@@ -148,81 +141,19 @@ export default function AdminBookingsPage() {
     pageSize,
     totalItems,
     totalPages,
-    clearFilters,
-    filter,
+    isUpdatingBookingStatus,
+    servedDate,
+    status,
+    submittingBookingId,
+    successMessage,
     goToPage,
-    refresh,
-  } = useGetBookings();
-  const {
-    confirmBooking,
-    errorMessage: confirmErrorMessage,
-    isSubmitting: isConfirmingBooking,
-    submittingBookingId: confirmingBookingId,
-    resetError: resetConfirmError,
-  } = useConfirmBooking();
-  const {
-    completeBooking,
-    errorMessage: completeErrorMessage,
-    isSubmitting: isCompletingBooking,
-    submittingBookingId: completingBookingId,
-    resetError: resetCompleteError,
-  } = useCompleteBooking();
-  
-  const [servedDate, setServedDate] = useState(activeFilters.servedDate);
-  const [status, setStatus] = useState<GetBookingsFilters["status"]>(activeFilters.status);
-  const [successMessage, setSuccessMessage] = useState("");
-  const actionErrorMessage = confirmErrorMessage || completeErrorMessage;
-  const isUpdatingBookingStatus = isConfirmingBooking || isCompletingBooking;
-  const submittingBookingId = confirmingBookingId || completingBookingId;
-
-  async function handleFilter(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSuccessMessage("");
-    resetConfirmError();
-    resetCompleteError();
-    await filter({ servedDate, status });
-  }
-
-  async function handleClearFilters() {
-    setServedDate("");
-    setStatus("");
-    setSuccessMessage("");
-    resetConfirmError();
-    resetCompleteError();
-    await clearFilters();
-  }
-
-  function handleRefresh() {
-    setSuccessMessage("");
-    resetConfirmError();
-    resetCompleteError();
-    refresh();
-  }
-
-  async function handleUpdateBookingStatus(booking: Booking) {
-    const action = getBookingStatusAction(booking.status);
-
-    if (!action) {
-      return;
-    }
-
-    setSuccessMessage("");
-
-    const request = {
-      bookingId: String(booking.id),
-    };
-    const message =
-      action === "confirm"
-        ? await confirmBooking(request)
-        : await completeBooking(request);
-
-    if (!message) {
-      return;
-    }
-
-    setSuccessMessage(message);
-    refresh();
-  }
+    handleClearFilters,
+    handleFilter,
+    handleRefresh,
+    handleStatusChange,
+    handleUpdateBookingStatus,
+    setServedDate,
+  } = useAdminBookingsPage();
 
   return (
     <div className="space-y-6">
@@ -316,9 +247,7 @@ export default function AdminBookingsPage() {
               <select
                 id="admin-booking-status"
                 value={status}
-                onChange={(event) =>
-                  setStatus(event.target.value as GetBookingsFilters["status"])
-                }
+                onChange={(event) => handleStatusChange(event.target.value)}
                 className="h-11 w-full rounded-lg border border-input bg-slate-50 px-4 text-sm font-semibold text-on-surface outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
               >
                 <option value="">Tất cả trạng thái</option>

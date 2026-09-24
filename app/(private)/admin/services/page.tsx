@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -41,11 +40,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useGetServices, {
-  GET_SERVICES_DEFAULT_SIZE,
-} from "@/feature/service/get-services/get-services.hook";
-import type { Service } from "@/feature/service/get-services/get-services.type";
-import useSetServiceLocking from "@/feature/service/set-service-locking/set-service-locking.hook";
+import { GET_SERVICES_DEFAULT_SIZE } from "@/feature/service/get-services/get-services.hook";
+import useAdminServicesPage from "@/feature/service/get-services/admin-services-page.hook";
 
 import CreateServiceModal from "./_components/CreateServiceModal";
 import UpdateServiceModal from "./_components/UpdateServiceModal";
@@ -63,12 +59,6 @@ function formatCurrency(value: number) {
 }
 
 export default function AdminServicesPage() {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
-    null
-  );
-  const [successMessage, setSuccessMessage] = useState("");
   const {
     currentPage,
     errorMessage,
@@ -78,61 +68,23 @@ export default function AdminServicesPage() {
     services,
     totalItems,
     totalPages,
-    refresh,
-    goToPage,
-  } = useGetServices();
-  const {
-    errorMessage: lockErrorMessage,
-    isSubmitting: isSettingServiceLock,
-    resetError: resetLockError,
-    setServiceLocking,
+    isCreateModalOpen,
+    isSettingServiceLock,
+    isUpdateModalOpen,
+    lockErrorMessage,
+    selectedServiceId,
     submittingServiceId,
-  } = useSetServiceLocking();
-
-  function handleCreateServiceCreated(message: string) {
-    setSuccessMessage(message);
-    resetLockError();
-    refresh();
-    setIsCreateModalOpen(false);
-  }
-
-  function handleOpenUpdateModal(serviceId: string | number) {
-    setSuccessMessage("");
-    resetLockError();
-    setSelectedServiceId(String(serviceId));
-    setIsUpdateModalOpen(true);
-  }
-
-  function handleUpdateServiceUpdated(message: string) {
-    setSuccessMessage(message);
-    resetLockError();
-    refresh();
-    setIsUpdateModalOpen(false);
-    setSelectedServiceId(null);
-  }
-
-  function handleCloseUpdateModal() {
-    setIsUpdateModalOpen(false);
-    setSelectedServiceId(null);
-  }
-
-  async function handleSetServiceLocking(service: Service) {
-    const nextIsLocked = !service.isLocked;
-
-    setSuccessMessage("");
-
-    const message = await setServiceLocking({
-      serviceId: String(service.id),
-      isLocked: nextIsLocked ? "true" : "false",
-    });
-
-    if (!message) {
-      return;
-    }
-
-    setSuccessMessage(message);
-    refresh();
-  }
+    successMessage,
+    goToPage,
+    handleCloseCreateModal,
+    handleCloseUpdateModal,
+    handleCreateServiceCreated,
+    handleOpenCreateModal,
+    handleOpenUpdateModal,
+    handleRefresh,
+    handleSetServiceLocking,
+    handleUpdateServiceUpdated,
+  } = useAdminServicesPage();
 
   return (
     <div className="space-y-6">
@@ -155,11 +107,7 @@ export default function AdminServicesPage() {
             type="button"
             variant="outline"
             size="lg"
-            onClick={() => {
-              setSuccessMessage("");
-              resetLockError();
-              refresh();
-            }}
+            onClick={handleRefresh}
             disabled={isLoading}
             className="font-bold text-primary"
           >
@@ -169,11 +117,7 @@ export default function AdminServicesPage() {
           <Button
             type="button"
             size="lg"
-            onClick={() => {
-              setSuccessMessage("");
-              resetLockError();
-              setIsCreateModalOpen(true);
-            }}
+            onClick={handleOpenCreateModal}
             className="font-bold"
           >
             <PlusCircle data-icon="inline-start" />
@@ -423,7 +367,7 @@ export default function AdminServicesPage() {
 
       <CreateServiceModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={handleCloseCreateModal}
         onCreated={handleCreateServiceCreated}
       />
       <UpdateServiceModal

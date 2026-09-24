@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
 import {
   ArrowLeft,
   CalendarDays,
@@ -35,14 +33,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useGetStaffSchedules from "@/feature/staff/get-staff-schedules/get-staff-schedules.hook";
+import useStaffSchedulesPage from "@/feature/staff/get-staff-schedules/admin-staff-schedules-page.hook";
 
 import CreateStaffScheduleModal from "./_components/CreateStaffScheduleModal";
 
 export default function StaffSchedulesPage() {
-  const { id } = useParams<{ id: string }>();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const {
     currentPage,
     errorMessage,
@@ -54,14 +49,14 @@ export default function StaffSchedulesPage() {
     totalItems,
     totalPages,
     goToPage,
-    refresh,
-  } = useGetStaffSchedules(id);
-
-  function handleCreateScheduleCreated(message: string) {
-    setSuccessMessage(message);
-    refresh();
-    setIsCreateModalOpen(false);
-  }
+    handleCloseCreateModal,
+    handleCreateScheduleCreated,
+    handleOpenCreateModal,
+    handleRefresh,
+    id,
+    isCreateModalOpen,
+    successMessage,
+  } = useStaffSchedulesPage();
 
   return (
     <div className="space-y-6">
@@ -95,10 +90,7 @@ export default function StaffSchedulesPage() {
             type="button"
             variant="outline"
             size="lg"
-            onClick={() => {
-              setSuccessMessage("");
-              refresh();
-            }}
+            onClick={handleRefresh}
             disabled={isLoading}
             className="font-bold text-primary"
           >
@@ -108,10 +100,7 @@ export default function StaffSchedulesPage() {
           <Button
             type="button"
             size="lg"
-            onClick={() => {
-              setSuccessMessage("");
-              setIsCreateModalOpen(true);
-            }}
+            onClick={handleOpenCreateModal}
             className="font-bold"
           >
             <CalendarPlus data-icon="inline-start" />
@@ -295,7 +284,7 @@ export default function StaffSchedulesPage() {
 
       <CreateStaffScheduleModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={handleCloseCreateModal}
         onCreated={handleCreateScheduleCreated}
         staffId={id}
       />
