@@ -4,6 +4,7 @@ import Link from "next/link";
 import { requireCustomer } from "@/lib/security/auth.server";
 
 import CustomerNavigation from "./_components/CustomerNavigation";
+import CustomerBookingStatusNotifications from "./_components/CustomerBookingStatusNotifications";
 import CustomerNavbarActions from "./_components/CustomerNavbarActions";
 
 export const metadata: Metadata = {
@@ -17,6 +18,8 @@ export default async function CustomerLayout({
 
   return (
     <main className="min-h-screen bg-surface text-on-surface">
+      <CustomerBookingStatusNotifications />
+
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-outline-variant/20 bg-white lg:flex lg:flex-col">
         <div className="flex h-20 items-center border-b border-outline-variant/15 px-6">
           <Link

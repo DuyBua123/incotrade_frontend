@@ -1,5 +1,9 @@
 
-import { MeUserResponse } from "./me.response";
+import axios from "axios";
+import { api } from "../api/api";
+import { FailureResponse } from "../api/failure.response.";
+import { SuccessResponse } from "../api/success.response.";
+import { MeResponse, MeUserResponse } from "./me.response";
 
 
 let accessToken: string = "";
@@ -31,16 +35,16 @@ export function isAuthenticated() {
     return Boolean(accessToken.trim()); 
 }
 
-// export async function getMeClient() {
-//     try {
-//         const response = await api.get<SuccessResponse<MeResponse>>("/auth/me");
+export async function getMeClient() {
+    try {
+        const response = await api.get<SuccessResponse<MeResponse>>("/auth/me");
 
-//         setAccessToken(response.data.data.accessToken);
-//         setCurrentUser(response.data.data.user);        
+        setAccessToken(response.data.data.accessToken);
+        setCurrentUser(response.data.data.user);
                 
-//     } catch (error) {
-//         if (axios.isAxiosError<FailureResponse<string>>(error)) {
-//             console.log(error.response?.data);
-//         }
-//     }
-// }
+    } catch (error) {
+        if (axios.isAxiosError<FailureResponse<string>>(error)) {
+            console.log(error.response?.data);
+        }
+    }
+}

@@ -7,6 +7,7 @@ import type {
   PageableResponse,
   SuccessResponse,
 } from "@/lib/api/success.response.";
+import { BOOKING_STATUS_NOTIFICATION_EVENT } from "@/lib/realtime/booking-status-notifications";
 
 import type { GetMyBookingsFilters, MyBooking } from "./get-my-bookings.type";
 
@@ -90,6 +91,7 @@ export default function useGetMyBookings() {
   );
 
   useEffect(() => {
+
     async function loadInitialBookings() {
       try {
         const response = await api.get<
@@ -117,10 +119,28 @@ export default function useGetMyBookings() {
       } finally {
         setIsLoading(false);
       }
-    }
+    }    
 
     void loadInitialBookings();
   }, []);
+
+  useEffect(() => {
+    function handleBookingStatusNotification() {
+      void loadBookings(currentPage, activeFilters);
+    }
+
+    window.addEventListener(
+      BOOKING_STATUS_NOTIFICATION_EVENT,
+      handleBookingStatusNotification
+    );
+
+    return () => {
+      window.removeEventListener(
+        BOOKING_STATUS_NOTIFICATION_EVENT,
+        handleBookingStatusNotification
+      );
+    };
+  }, [activeFilters, currentPage, loadBookings]);
 
   async function goToPage(page: number) {
     await loadBookings(page, activeFilters);
