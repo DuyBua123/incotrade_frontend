@@ -3,8 +3,11 @@
 import type { SubmitEvent } from "react";
 import { useState } from "react";
 import {
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  LoaderCircle,
+  MoreHorizontal,
   RefreshCcw,
   Search,
   SearchX,
@@ -25,6 +28,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -39,9 +48,14 @@ import useGetBookings, {
 } from "@/feature/booking/get-bookings/get-bookings.hook";
 import {
   BOOKING_STATUS_VALUES,
+  type Booking,
   type BookingStatus,
   type GetBookingsFilters,
 } from "@/feature/booking/get-bookings/get-bookings.type";
+import useCompleteBooking from "@/feature/booking/complete-booking/complete-booking.hook";
+import useConfirmBooking from "@/feature/booking/confirm-booking/confirm-booking.hook";
+
+type BookingStatusAction = "confirm" | "complete";
 
 const STATUS_LABELS: Record<BookingStatus, string> = {
   PENDING: "Chờ xác nhận",
@@ -101,6 +115,26 @@ function getBookingNote(
   return "Không có ghi chú";
 }
 
+function getBookingStatusAction(
+  status: string
+): BookingStatusAction | null {
+  const normalizedStatus = status.toUpperCase();
+
+  if (normalizedStatus === "PENDING") {
+    return "confirm";
+  }
+
+  if (normalizedStatus === "CONFIRMED") {
+    return "complete";
+  }
+
+  return null;
+}
+
+function getBookingStatusActionLabel(action: BookingStatusAction) {
+  return action === "confirm" ? "Xác nhận" : "Hoàn thành";
+}
+
 
 export default function AdminBookingsPage() {
   const {
@@ -119,18 +153,75 @@ export default function AdminBookingsPage() {
     goToPage,
     refresh,
   } = useGetBookings();
+  const {
+    confirmBooking,
+    errorMessage: confirmErrorMessage,
+    isSubmitting: isConfirmingBooking,
+    submittingBookingId: confirmingBookingId,
+    resetError: resetConfirmError,
+  } = useConfirmBooking();
+  const {
+    completeBooking,
+    errorMessage: completeErrorMessage,
+    isSubmitting: isCompletingBooking,
+    submittingBookingId: completingBookingId,
+    resetError: resetCompleteError,
+  } = useCompleteBooking();
+  
   const [servedDate, setServedDate] = useState(activeFilters.servedDate);
   const [status, setStatus] = useState<GetBookingsFilters["status"]>(activeFilters.status);
+  const [successMessage, setSuccessMessage] = useState("");
+  const actionErrorMessage = confirmErrorMessage || completeErrorMessage;
+  const isUpdatingBookingStatus = isConfirmingBooking || isCompletingBooking;
+  const submittingBookingId = confirmingBookingId || completingBookingId;
 
   async function handleFilter(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSuccessMessage("");
+    resetConfirmError();
+    resetCompleteError();
     await filter({ servedDate, status });
   }
 
   async function handleClearFilters() {
     setServedDate("");
     setStatus("");
+    setSuccessMessage("");
+    resetConfirmError();
+    resetCompleteError();
     await clearFilters();
+  }
+
+  function handleRefresh() {
+    setSuccessMessage("");
+    resetConfirmError();
+    resetCompleteError();
+    refresh();
+  }
+
+  async function handleUpdateBookingStatus(booking: Booking) {
+    const action = getBookingStatusAction(booking.status);
+
+    if (!action) {
+      return;
+    }
+
+    setSuccessMessage("");
+
+    const request = {
+      bookingId: String(booking.id),
+    };
+    const message =
+      action === "confirm"
+        ? await confirmBooking(request)
+        : await completeBooking(request);
+
+    if (!message) {
+      return;
+    }
+
+    setSuccessMessage(message);
+    refresh();
   }
 
   return (
@@ -153,7 +244,7 @@ export default function AdminBookingsPage() {
           type="button"
           variant="outline"
           size="lg"
-          onClick={refresh}
+          onClick={handleRefresh}
           disabled={isLoading}
           className="font-bold text-primary"
         >
@@ -162,7 +253,21 @@ export default function AdminBookingsPage() {
         </Button>
       </div>
 
-      
+      {successMessage && (
+        <Alert className="border-success/20 bg-success/10 text-success">
+          <AlertDescription className="font-bold text-success">
+            {successMessage}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {actionErrorMessage && (
+        <Alert variant="destructive" className="border-danger/15 bg-danger/5">
+          <AlertDescription className="font-bold text-danger">
+            {actionErrorMessage}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader className="pb-3">
@@ -287,7 +392,7 @@ export default function AdminBookingsPage() {
         )}
 
         <CardContent className="px-0">
-          <Table className="min-w-[1320px]">
+          <Table className="min-w-[1460px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
@@ -314,6 +419,9 @@ export default function AdminBookingsPage() {
                 <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
                   Ghi chú
                 </TableHead>
+                <TableHead className="px-5 py-4 text-right text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
+                  Thao tác
+                </TableHead>
               </TableRow>
             </TableHeader>
 
@@ -322,7 +430,7 @@ export default function AdminBookingsPage() {
                 Array.from({ length: GET_BOOKINGS_DEFAULT_SIZE }).map(
                   (_, rowIndex) => (
                     <TableRow key={`admin-booking-loading-${rowIndex}`}>
-                      {Array.from({ length: 8 }).map((__, cellIndex) => (
+                      {Array.from({ length: 9 }).map((__, cellIndex) => (
                         <TableCell
                           key={`admin-booking-loading-${rowIndex}-${cellIndex}`}
                           className="px-5 py-4"
@@ -396,6 +504,60 @@ export default function AdminBookingsPage() {
                           booking.cancellationReason
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-right">
+                      {getBookingStatusAction(booking.status) ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon-lg"
+                                aria-label={`Mở thao tác booking ${booking.bookingCode}`}
+                              />
+                            }
+                          >
+                            <MoreHorizontal aria-hidden="true" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-44"
+                            sideOffset={8}
+                          >
+                            <DropdownMenuItem
+                              onClick={() =>
+                                void handleUpdateBookingStatus(booking)
+                              }
+                              disabled={isUpdatingBookingStatus}
+                              className={
+                                getBookingStatusAction(booking.status) ===
+                                "complete"
+                                  ? "font-bold text-success"
+                                  : "font-bold text-primary"
+                              }
+                            >
+                              {submittingBookingId === String(booking.id) ? (
+                                <LoaderCircle
+                                  className="animate-spin"
+                                  aria-hidden="true"
+                                />
+                              ) : (
+                                <CheckCircle2 aria-hidden="true" />
+                              )}
+                              {submittingBookingId === String(booking.id)
+                                ? "Đang xử lý"
+                                : getBookingStatusActionLabel(
+                                    getBookingStatusAction(booking.status)!
+                                  )}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <span className="text-sm font-bold text-on-surface-variant">
+                          -
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
