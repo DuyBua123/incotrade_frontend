@@ -84,13 +84,7 @@ export default function useCreateBooking() {
     try {
       const { data } = await api.post<SuccessResponse<CreateBookingResponse>>(
         "/bookings/create-booking",
-        request,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+        request);
 
       setSuccessMessage(data.message);
       return data;

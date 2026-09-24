@@ -38,13 +38,7 @@ export default function useConfirmBooking() {
     try {
       const { data } = await api.patch<SuccessResponse<ConfirmBookingResponse>>(
         "/bookings/confirm-booking",
-        request,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+        request);
 
       return data.message;
     } catch (error) {

@@ -38,11 +38,7 @@ export default function useCompleteBooking() {
     try {
       const { data } = await api.patch<
         SuccessResponse<CompleteBookingResponse>
-      >("/bookings/complete-booking", request, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      >("/bookings/complete-booking", request);
 
       return data.message;
     } catch (error) {

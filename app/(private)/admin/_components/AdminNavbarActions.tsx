@@ -45,11 +45,7 @@ export default function AdminNavbarActions({ user }: AdminNavbarActionsProps) {
     setIsLoggingOut(true);
 
     try {
-      await api.post<SuccessResponse<null>>("/auth/logout", undefined, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      await api.post<SuccessResponse<null>>("/auth/logout", undefined);
     } finally {
       clearAccessToken();
       clearCurrentUser();
