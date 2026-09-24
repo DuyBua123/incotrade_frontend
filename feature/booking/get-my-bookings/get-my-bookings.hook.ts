@@ -139,8 +139,8 @@ export default function useGetMyBookings() {
     );
   }
 
-  function refresh() {
-    void loadBookings(currentPage, activeFilters);
+  async function refresh() {
+    await loadBookings(currentPage, activeFilters);
   }
 
   return {

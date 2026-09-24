@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  CalendarX2,
   ChevronLeft,
   ChevronRight,
+  LoaderCircle,
   RefreshCcw,
   Search,
   SearchX,
@@ -22,6 +24,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -32,6 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { GET_MY_BOOKINGS_DEFAULT_SIZE } from "@/feature/booking/get-my-bookings/get-my-bookings.hook";
 import useCustomerMyBookingsPage from "@/feature/booking/get-my-bookings/customer-my-bookings-page.hook";
 import {
@@ -82,26 +94,41 @@ function formatTime(value: string) {
   return value.slice(0, 5);
 }
 
+function canCancelBooking(status: string) {
+  return status.toUpperCase() === "PENDING";
+}
+
 
 export default function CustomerMyBookingsPage() {
   const {
+    actionErrorMessage,
+    bookingToCancel,
     bookings,
+    cancellationReason,
+    cancellationReasonError,
+    cancellingBookingId,
     currentPage,
     errorMessage,
     hasNext,
     hasPrevious,
+    isCancellingBooking,
     isLoading,
     pageSize,
     totalItems,
     totalPages,
     servedDate,
     status,
+    successMessage,
+    closeCancelBookingDialog,
     goToPage,
-    setServedDate,
+    handleCancelBooking,
     handleClearFilters,
     handleFilter,
+    handleRefresh,
     handleStatusChange,
-    refresh,
+    openCancelBookingDialog,
+    setCancellationReason,
+    setServedDate,
   } = useCustomerMyBookingsPage();
 
   return (
@@ -124,7 +151,7 @@ export default function CustomerMyBookingsPage() {
           type="button"
           variant="outline"
           size="lg"
-          onClick={refresh}
+          onClick={handleRefresh}
           disabled={isLoading}
           className="font-bold text-primary"
         >
@@ -132,6 +159,118 @@ export default function CustomerMyBookingsPage() {
           Tải lại
         </Button>
       </div>
+
+      {successMessage && (
+        <Alert className="border-success/20 bg-success/10 text-success">
+          <AlertDescription className="font-bold text-success">
+            {successMessage}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {actionErrorMessage && (
+        <Alert variant="destructive" className="border-danger/15 bg-danger/5">
+          <AlertDescription className="font-bold text-danger">
+            {actionErrorMessage}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Dialog
+        open={Boolean(bookingToCancel)}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeCancelBookingDialog();
+          }
+        }}
+      >
+        <DialogContent
+          className="max-w-xl gap-0 overflow-hidden p-0"
+          showCloseButton={!isCancellingBooking}
+        >
+          <DialogHeader className="border-b border-outline-variant/15 px-5 py-4">
+            <DialogDescription className="text-xs font-black uppercase tracking-[0.16em] text-danger">
+              Hủy lịch hẹn
+            </DialogDescription>
+            <DialogTitle className="text-xl font-extrabold text-on-surface">
+              {bookingToCancel?.bookingCode ?? "Xác nhận hủy lịch hẹn"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={(event) => void handleCancelBooking(event)}>
+            <div className="space-y-5 px-5 py-5">
+              <div className="rounded-xl border border-danger/15 bg-danger/5 px-4 py-3">
+                <p className="text-sm font-bold text-danger">
+                  Chỉ lịch hẹn đang chờ xác nhận mới có thể hủy.
+                </p>
+                {bookingToCancel && (
+                  <p className="mt-2 text-sm font-semibold leading-6 text-on-surface-variant">
+                    {formatDate(bookingToCancel.servedDate)},{" "}
+                    {formatTime(bookingToCancel.startTime)} -{" "}
+                    {formatTime(bookingToCancel.endTime)} -{" "}
+                    {bookingToCancel.serviceName}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="cancel-booking-reason"
+                  className="mb-2 block text-sm font-semibold text-on-surface-variant"
+                >
+                  Lý do hủy <span className="text-danger">*</span>
+                </label>
+                <Textarea
+                  id="cancel-booking-reason"
+                  value={cancellationReason}
+                  onChange={(event) => {
+                    setCancellationReason(event.target.value);
+                  }}
+                  maxLength={255}
+                  aria-invalid={Boolean(cancellationReasonError)}
+                  disabled={isCancellingBooking}
+                  placeholder="Nhập lý do hủy lịch hẹn"
+                  className="min-h-28 resize-none bg-slate-50 px-4 py-3 text-sm font-semibold"
+                />
+                <div className="mt-1.5 flex items-start justify-between gap-3">
+                  <FieldError
+                    message={cancellationReasonError}
+                    className="mt-0"
+                  />
+                  <p className="ml-auto shrink-0 text-xs font-bold text-on-surface-variant">
+                    {cancellationReason.length}/255
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="mx-0 mb-0 rounded-none border-t border-outline-variant/15 bg-muted/40 px-5 py-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeCancelBookingDialog}
+                disabled={isCancellingBooking}
+                className="font-bold"
+              >
+                Đóng
+              </Button>
+              <Button
+                type="submit"
+                variant="destructive"
+                disabled={isCancellingBooking}
+                className="bg-danger font-bold text-white hover:bg-danger/90"
+              >
+                {isCancellingBooking ? (
+                  <LoaderCircle className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <CalendarX2 data-icon="inline-start" />
+                )}
+                {isCancellingBooking ? "Đang hủy" : "Hủy lịch hẹn"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader className="pb-3">
@@ -251,7 +390,7 @@ export default function CustomerMyBookingsPage() {
         )}
 
         <CardContent className="px-0">
-          <Table className="min-w-[1080px]">
+          <Table className="min-w-[1240px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
@@ -275,6 +414,9 @@ export default function CustomerMyBookingsPage() {
                 <TableHead className="px-5 py-4 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
                   Ghi chú
                 </TableHead>
+                <TableHead className="px-5 py-4 text-right text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant">
+                  Thao tác
+                </TableHead>
               </TableRow>
             </TableHeader>
 
@@ -283,7 +425,7 @@ export default function CustomerMyBookingsPage() {
                 Array.from({ length: GET_MY_BOOKINGS_DEFAULT_SIZE }).map(
                   (_, rowIndex) => (
                     <TableRow key={`my-booking-loading-${rowIndex}`}>
-                      {Array.from({ length: 7 }).map((__, cellIndex) => (
+                      {Array.from({ length: 8 }).map((__, cellIndex) => (
                         <TableCell
                           key={`my-booking-loading-${rowIndex}-${cellIndex}`}
                           className="px-5 py-4"
@@ -346,6 +488,35 @@ export default function CustomerMyBookingsPage() {
                           booking.customerNote ||
                           "Không có ghi chú"}
                       </div>
+                    </TableCell>
+                    <TableCell className="px-5 py-4 text-right">
+                      {canCancelBooking(booking.status) ? (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => openCancelBookingDialog(booking)}
+                          disabled={
+                            isCancellingBooking ||
+                            cancellingBookingId === String(booking.id)
+                          }
+                          className="font-bold"
+                        >
+                          {cancellingBookingId === String(booking.id) ? (
+                            <LoaderCircle
+                              className="animate-spin"
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            <CalendarX2 data-icon="inline-start" />
+                          )}
+                          Hủy
+                        </Button>
+                      ) : (
+                        <span className="text-sm font-bold text-on-surface-variant">
+                          -
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
