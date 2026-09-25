@@ -13,7 +13,7 @@ import {
   RECEIVE_UPDATING_BOOKING_STATUS_MESSAGE,
   UPDATE_BOOKING_STATUS_NOTIFICATION_HUB_URL,
 } from "@/lib/realtime/booking-status-notifications";
-import { getAccessToken, useAuthStore } from "@/lib/security/auth.store";
+import { useAuthStore } from "@/lib/security/auth.store";
 
 type BookingStatusToast = {
   id: number;
