@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import type {
   PageableResponse,
   SuccessResponse,
@@ -63,7 +63,7 @@ export default function useGetBookings() {
       setErrorMessage("");
 
       try {
-        const response = await api.get<
+        const response = await clientApi.get<
           SuccessResponse<PageableResponse<Booking[]>>
         >("/bookings/get-bookings", {
           params: buildParams(page, filters),
@@ -91,7 +91,7 @@ export default function useGetBookings() {
   useEffect(() => {
     async function loadInitialBookings() {
       try {
-        const response = await api.get<
+        const response = await clientApi.get<
           SuccessResponse<PageableResponse<Booking[]>>
         >("/bookings/get-bookings", {
           params: buildParams(

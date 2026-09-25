@@ -1,7 +1,7 @@
 import axios from "axios";
 import { SubmitEvent, useEffect, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import {
   ERROR_CODES,
   type FailureResponse,
@@ -103,7 +103,7 @@ export default function useUpdateService({
       setFieldErrors({});
 
       try {
-        const { data } = await api.get<SuccessResponse<ServiceDetail>>(
+        const { data } = await clientApi.get<SuccessResponse<ServiceDetail>>(
           "/services/get-service",
           {
             params: {
@@ -170,7 +170,7 @@ export default function useUpdateService({
     setFormError("");
 
     try {
-      const { data } = await api.put<SuccessResponse<UpdateServiceResponse>>(
+      const { data } = await clientApi.put<SuccessResponse<UpdateServiceResponse>>(
         "/services/update-service",
         buildRequest(form)
       );

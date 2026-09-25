@@ -1,7 +1,7 @@
 import axios from "axios";
 import { type SubmitEvent, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import {
   ERROR_CODES,
   type FailureResponse,
@@ -110,7 +110,7 @@ export default function useUpdateStaff(staff: Staff | null) {
     setFormError("");
 
     try {
-      const { data } = await api.put<SuccessResponse<UpdateStaffResponse>>(
+      const { data } = await clientApi.put<SuccessResponse<UpdateStaffResponse>>(
         "/staffs/update-staff",
         buildRequest(form)
       );

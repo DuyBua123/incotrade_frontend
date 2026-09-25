@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import type {
   PageableResponse,
   SuccessResponse,
@@ -24,7 +24,7 @@ function getErrorMessage(error: unknown) {
 }
 
 async function getServices(page: number) {
-  const response = await api.get<SuccessResponse<PageableResponse<Service[]>>>(
+  const response = await clientApi.get<SuccessResponse<PageableResponse<Service[]>>>(
     "/services/get-services",
     {
       params: {

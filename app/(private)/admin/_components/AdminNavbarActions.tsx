@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import type { SuccessResponse } from "@/lib/api/success.response.";
 import type { MeUserResponse } from "@/lib/security/me.response";
 import {
@@ -45,7 +45,7 @@ export default function AdminNavbarActions({ user }: AdminNavbarActionsProps) {
     setIsLoggingOut(true);
 
     try {
-      await api.post<SuccessResponse<null>>("/auth/logout", undefined);
+      await clientApi.post<SuccessResponse<null>>("/auth/logout", undefined);
     } finally {
       clearAccessToken();
       clearCurrentUser();

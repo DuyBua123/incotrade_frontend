@@ -1,7 +1,7 @@
 import axios from "axios";
 import { SubmitEvent, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import {
   ERROR_CODES,
   type FailureResponse,
@@ -95,7 +95,7 @@ export default function useCreateService() {
     setFormError("");
 
     try {
-      const { data } = await api.post<SuccessResponse<CreateServiceResponse>>(
+      const { data } = await clientApi.post<SuccessResponse<CreateServiceResponse>>(
         "/services/create-service",
         buildRequest(form)
       );

@@ -3,7 +3,7 @@
 import axios from "axios";
 import { type SubmitEvent, useMemo, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import {
   ERROR_CODES,
   type FailureResponse,
@@ -109,7 +109,7 @@ export default function useCreateStaffSchedule(staffId: string) {
     setFormError("");
 
     try {
-      const { data } = await api.post<
+      const { data } = await clientApi.post<
         SuccessResponse<CreateStaffScheduleResponse>
       >("/staffs/create-staff-schedule", buildRequest(form));
 

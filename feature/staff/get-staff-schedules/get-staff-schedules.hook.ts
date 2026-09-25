@@ -3,7 +3,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-import { api } from "@/lib/api/api";
+import { clientApi } from "@/lib/api/api";
 import type {
   Pageable,
   PageableResponse,
@@ -36,7 +36,7 @@ function getErrorMessage(error: unknown) {
 }
 
 async function getStaffSchedules(staffId: string, page: number) {
-  const response = await api.get<
+  const response = await clientApi.get<
     SuccessResponse<PageableResponse<GetStaffScheduleResponse[]>>
   >("/staffs/get-staff-schedules", {
     params: {
